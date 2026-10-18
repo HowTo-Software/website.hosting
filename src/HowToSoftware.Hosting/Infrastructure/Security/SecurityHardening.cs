@@ -18,6 +18,8 @@ public static class SecurityRateLimitPolicies
     public const string PublicPages = "public-pages";
     public const string TrialsRequest = "trial-request";
     public const string TrialsConfirm = "trial-confirm";
+    public const string CustomerRequest = "customer-request";
+    public const string CustomerAction = "customer-action";
 }
 
 /// <summary>Registers limits that belong to the application rather than to a CDN or WAF.</summary>
@@ -73,6 +75,8 @@ public static class SecurityServiceExtensions
                 FixedWindow(context, permitLimit: 3, partition: "trial-request"));
             options.AddPolicy(SecurityRateLimitPolicies.TrialsConfirm, context =>
                 FixedWindow(context, permitLimit: 10, partition: "trial-confirm"));
+            options.AddPolicy(SecurityRateLimitPolicies.CustomerRequest, context => FixedWindow(context, 3, "customer-request"));
+            options.AddPolicy(SecurityRateLimitPolicies.CustomerAction, context => FixedWindow(context, 12, "customer-action"));
             options.AddPolicy(SecurityRateLimitPolicies.PublicPages, context =>
             {
                 var isCheckoutPost = HttpMethods.IsPost(context.Request.Method)
@@ -230,7 +234,8 @@ public sealed class SecurityHeadersMiddleware
     }
 
     private static bool IsPaymentPath(PathString path) =>
-        path.StartsWithSegments("/payment") || path.StartsWithSegments("/api/payments");
+        path.StartsWithSegments("/payment") || path.StartsWithSegments("/api/payments")
+        || path.StartsWithSegments("/account");
 }
 
 /// <summary>Pipeline registration kept next to the middleware so it cannot be half-installed.</summary>

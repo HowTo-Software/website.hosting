@@ -30,8 +30,8 @@ public sealed class TrialService(
     {
         if (!store.IsConfigured || !email.IsConfigured) return new(TrialRequestOutcome.Unavailable);
         var normalized = NormalizeEmail(request.Email);
-        if (normalized is null || string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Length > 128
-            || request.DisplayName.Any(char.IsControl))
+        var displayName = TrialServerIdentity.NormalizeDisplayName(request.DisplayName);
+        if (normalized is null || displayName is null)
             return new(TrialRequestOutcome.InvalidSelection);
 
         try
@@ -49,7 +49,7 @@ public sealed class TrialService(
             var token = CreateToken();
             var record = existing ?? new ServerTrialRecord
             {
-                Id = Guid.NewGuid(), NormalizedEmail = normalized, DisplayName = request.DisplayName.Trim(),
+                Id = Guid.NewGuid(), NormalizedEmail = normalized, DisplayName = displayName,
                 GameSlug = request.GameSlug, ProfileId = request.ProfileId, Version = request.Version,
                 State = TrialState.PendingVerification, CreatedAt = now, UpdatedAt = now
             };
@@ -123,7 +123,23 @@ public sealed class TrialService(
         try
         {
             var record = await store.FindByAccessAsync(HashToken(accessToken), ct);
-            return record is null ? null : View(record);
+            if (record is null) return null;
+            TrialPanelServer? details = null;
+            if (record.PterodactylServerId is { } serverId && panel.IsConfigured
+                && record.State is TrialState.Active or TrialState.Converted or TrialState.Installing)
+            {
+                try
+                {
+                    var actual = await panel.InspectServerAsync(serverId, ct);
+                    if (actual is not null && actual.UserId == record.PterodactylUserId && actual.ExternalId == ExternalId(record.Id))
+                        details = actual;
+                }
+                catch (Exception error) when (error is not OperationCanceledException)
+                {
+                    LogFailure("Trial live details", error);
+                }
+            }
+            return View(record) with { Server = details };
         }
         catch (Exception error) when (error is not OperationCanceledException)
         {
@@ -270,7 +286,7 @@ public sealed class TrialService(
                 var profile = ResolveProfile(record.GameSlug, record.ProfileId, record.Version);
                 await RenewAsync(record, ct);
                 server = await panel.CreateServerAsync(new(record.Id, ExternalId(record.Id), record.PterodactylUserId.Value,
-                    settings.CurrentValue.Limits, record.GameSlug, record.ProfileId, record.Version, profile), ct);
+                    settings.CurrentValue.Limits, record.GameSlug, record.ProfileId, record.Version, profile, record.DisplayName), ct);
             }
             record.PterodactylServerId = server.Id;
             record.ServerIdentifier = server.Identifier;

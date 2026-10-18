@@ -1,0 +1,13 @@
+.account-connections { max-width: 760px; margin-top: 2rem; color: var(--ht-ink); }
+.account-connections h2 { font-size: 1.2rem; font-weight: 550; }
+.account-connections > p { color: var(--ht-ink-muted); font-size: .85rem; line-height: 1.65; max-width: 70ch; }
+.account-connection { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid var(--ht-edge-strong); }
+.account-connection > div { min-width: 0; overflow-wrap: anywhere; }
+.account-connection h3 { font-size: 1rem; font-weight: 550; margin: 0 0 .4rem; }
+.account-connection p { margin: 0; font-size: .85rem; color: var(--ht-ink-soft); }
+.account-connection span { font-size: .75rem; color: var(--ht-ink-muted); }
+.account-connection button { min-height: 44px; padding: .7rem 1rem; color: var(--ht-ink-soft); background: transparent; border: 1px solid var(--ht-edge-strong); border-radius: 5px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
+.account-connection button:hover { border-color: var(--ht-accent); color: var(--ht-accent); }
+.account-connection button:focus-visible { outline: 2px solid var(--ht-accent); outline-offset: 4px; }
+.account-connections__note { padding: 1rem; background: var(--ht-accent-soft); border-left: 2px solid var(--ht-accent); }
+@media(max-width: 420px) { .account-connection { align-items: flex-start; flex-wrap: wrap; } }

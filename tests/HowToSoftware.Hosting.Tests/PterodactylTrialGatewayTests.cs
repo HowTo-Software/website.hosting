@@ -120,10 +120,14 @@ public sealed class PterodactylTrialGatewayTests
         h.EnqueueItem(new PterodactylEgg { Id = 13, Nest = 2, DockerImage = "approved-image", Startup = "approved-startup",
             Relationships = new() { Variables = new() { Data = [new() { Attributes = new() { EnvVariable = "REQUIRED", DefaultValue = "egg-value" } }] } } });
         h.EnqueueItem(Server());
-        var result = await h.Gateway.CreateServerAsync(new(TrialId, TrialExternalId, 7, new(6144, 0, 25600)), default);
+        var result = await h.Gateway.CreateServerAsync(new(TrialId, TrialExternalId, 7, new(6144, 0, 25600), DisplayName: "Malaio"), default);
         Assert.Equal(42, result.Id);
         using var payload = JsonDocument.Parse(h.Requests[2].Body!);
         var root = payload.RootElement;
+        Assert.Equal("24 Teste Malaio", root.GetProperty("name").GetString());
+        var adminPassword = root.GetProperty("environment").GetProperty("ADMIN_PASSWORD").GetString();
+        Assert.Equal(32, adminPassword!.Length);
+        Assert.DoesNotContain(h.Log.Messages, line => line.Contains(adminPassword, StringComparison.Ordinal));
         Assert.Equal(6144, root.GetProperty("limits").GetProperty("memory").GetInt32());
         Assert.Equal(0, root.GetProperty("limits").GetProperty("cpu").GetInt32());
         Assert.Equal(25600, root.GetProperty("limits").GetProperty("disk").GetInt32());

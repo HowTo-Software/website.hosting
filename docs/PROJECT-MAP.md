@@ -33,6 +33,8 @@ Table paths are relative to `src/HowToSoftware.Hosting` unless indicated otherwi
 | Need | Main files | Guide |
 | --- | --- | --- |
 | Service registration/pipeline | `Program.cs` | [Architecture](phase-2-design/architecture.md) |
+| Customer area, email sessions, invoices, support, plan changes | `Components/Pages/CustomerAccount.razor`, `Endpoints/CustomerEndpoints.cs`, `Services/Subscriptions` | [Customer area](CUSTOMER-AREA.md) |
+| Dormant AD identity boundary and Discord link/login | `Services/Identity`, `Endpoints/ExternalIdentityEndpoints.cs`, `Components/Account/AccountConnections.razor` | [External identities](EXTERNAL-IDENTITIES.md) |
 | Routes and links | `Models/SiteRoutes.cs`, `Components/Pages` | [HTTP](phase-2-design/api-specification.md) |
 | Available games | `Services/GameCatalog.cs` | [Scope](phase-1-inception/vision-and-scope.md) |
 | Plan resources and recommendation | `Services/StaticPlanCatalogService.cs` | [Technical design](phase-2-design/technical-design.md) |

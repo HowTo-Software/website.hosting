@@ -442,6 +442,7 @@ public sealed class ProvisioningService : IProvisioningService
             environment[key] = value;
         }
 
+        HowToSoftware.Hosting.Services.Trials.TrialServerIdentity.SetProjectZomboidPassword(template.Id, environment);
         var limits = plan.ToResourceLimits();
         var features = plan.ToFeatureLimits();
 

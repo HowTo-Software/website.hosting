@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Connections.Title" xml:space="preserve"><value>Contas vinculadas</value></data>
+  <data name="Connections.Body" xml:space="preserve"><value>Vincule uma identidade externa à sua conta HTS existente. O acesso por e-mail continua disponível.</value></data>
+  <data name="Provider.active-directory" xml:space="preserve"><value>Active Directory da empresa</value></data>
+  <data name="Provider.discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="Connections.NotLinked" xml:space="preserve"><value>Não vinculada</value></data>
+  <data name="Connections.Disabled" xml:space="preserve"><value>Não habilitado</value></data>
+  <data name="Connections.LinkedSince" xml:space="preserve"><value>Vinculada desde {0} (UTC)</value></data>
+  <data name="Connections.Link" xml:space="preserve"><value>Vincular conta</value></data>
+  <data name="Connections.Unlink" xml:space="preserve"><value>Desvincular</value></data>
+  <data name="Connections.Safety" xml:space="preserve"><value>Um vínculo não concede permissões administrativas, cargos no Discord ou acesso a servidores. O login externo precisa ser habilitado separadamente.</value></data>
+  <data name="Return.Title" xml:space="preserve"><value>Voltar à sua conta HTS</value></data>
+  <data name="Return.Body" xml:space="preserve"><value>Continue neste navegador para conferir a conta e confirmar. Esta etapa ainda não vinculou uma conta nem realizou o login.</value></data>
+  <data name="Return.Continue" xml:space="preserve"><value>Continuar com segurança</value></data>
+  <data name="Confirm.LinkTitle" xml:space="preserve"><value>Confirmar vínculo da conta</value></data>
+  <data name="Confirm.LoginTitle" xml:space="preserve"><value>Confirmar login externo</value></data>
+  <data name="Confirm.LinkBody" xml:space="preserve"><value>Confirme apenas se esta conta externa é sua. Ela será associada à conta HTS em que você está autenticado.</value></data>
+  <data name="Confirm.LoginBody" xml:space="preserve"><value>Continue apenas se esta conta externa é sua. O login só funciona se ela já estiver vinculada a uma conta HTS.</value></data>
+  <data name="Confirm.Action" xml:space="preserve"><value>Confirmar e continuar</value></data>
+  <data name="Confirm.Cancel" xml:space="preserve"><value>Cancelar e voltar</value></data>
+  <data name="Login.With" xml:space="preserve"><value>Continuar com {0}</value></data>
+  <data name="Result.Failed" xml:space="preserve"><value>Não foi possível confirmar a conexão. Entre por e-mail e inicie novamente. As contas nunca são unidas automaticamente.</value></data>
+  <data name="Result.Complete" xml:space="preserve"><value>Identidade externa confirmada.</value></data>
+  <data name="Result.Removed" xml:space="preserve"><value>Conta desvinculada. O acesso por e-mail continua disponível.</value></data>
+  <data name="Connections.DirectoryPending" xml:space="preserve"><value>Aguardando o adaptador do diretório da empresa.</value></data>
+  <data name="Connections.DiscordPrepared" xml:space="preserve"><value>Vinculação e login preparados para ativação futura.</value></data>
+</root>

@@ -1,0 +1,16 @@
+@page "/account/connections/return"
+@inject IStringLocalizer<IdentityText> Text
+
+<PageTitle>@Text["Return.Title"] | HTS</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /><meta name="referrer" content="no-referrer" /></HeadContent>
+<section class="hts-container external-return">
+    <h1>@Text["Return.Title"]</h1>
+    <p>@Text["Return.Body"]</p>
+    <a href="@ContinueUrl" data-enhance-nav="false">@Text["Return.Continue"]</a>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "flow")] public string? Flow { get; set; }
+    private string ContinueUrl => Flow is { Length: <= 36 } && Guid.TryParse(Flow, out var id) && id != Guid.Empty
+        ? "/account?connection=" + id.ToString("N") : "/account";
+}

@@ -13,6 +13,8 @@ using HowToSoftware.Hosting.Services.Orders;
 using HowToSoftware.Hosting.Services.Payments;
 using HowToSoftware.Hosting.Services.Provisioning;
 using HowToSoftware.Hosting.Services.Trials;
+using HowToSoftware.Hosting.Services.Subscriptions;
+using HowToSoftware.Hosting.Services.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -190,7 +192,10 @@ builder.Services.AddScoped<ICustomBuildService, RateCardBuildService>();
 // currency sign on it is computed here, sent to Stripe from here, and checked here when
 // Stripe's webhook reports it paid. Fulfilment runs off a queue so the webhook answers fast.
 builder.Services.AddScoped<IOrderPricingService, OrderPricingService>();
-builder.Services.AddSingleton<IStripeGateway, StripeGateway>();
+builder.Services.AddSingleton<StripeGateway>();
+builder.Services.AddSingleton<IStripeGateway>(p => p.GetRequiredService<StripeGateway>());
+builder.Services.AddCustomerArea(builder.Configuration, database.IsDatabaseConfigured);
+builder.Services.AddExternalIdentities(builder.Configuration, database.IsDatabaseConfigured);
 builder.Services.AddSingleton<OrderFulfillmentQueue>();
 builder.Services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
 builder.Services.AddScoped<IStripeWebhookHandler, StripeWebhookHandler>();
@@ -280,12 +285,15 @@ if (!app.Environment.IsDevelopment())
 app.UseRequestLocalization();
 
 app.UseRateLimiter();
+app.UseAuthentication();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapCultureSelection();
 app.MapPaymentEndpoints();
 app.MapTrialEndpoints();
+app.MapCustomerEndpoints();
+app.MapExternalIdentityEndpoints();
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     AllowCachingResponses = false,

@@ -14,6 +14,7 @@
 @implements IDisposable
 @inject IMarketingContentService Content
 @inject IStringLocalizer<CommonText> Text
+@inject IStringLocalizer<CustomerText> CustomerText
 @inject NavigationManager Navigation
 
 <header class="site-header @(_isOpen ? "has-open-menu" : null)" @onkeydown="OnKeyDown">
@@ -42,6 +43,7 @@
             </nav>
 
             <div class="header-actions">
+                <a href="/account" class="header-customer" @onclick="Close">@CustomerText["Portal.Title"]</a>
                 @* The customer's control panel is a separate application. Preserve its
                    absolute destination and secure new-tab behaviour. *@
                 <CtaButton Href="@PanelUrl"
@@ -79,6 +81,7 @@
                 <a href="@link.Href">@link.Label</a>
             }
             <a href="@PanelUrl" target="_blank" rel="noopener noreferrer">@Text["Product.ControlPanel"]</a>
+            <a href="/account">@CustomerText["Portal.Title"]</a>
         </nav>
     </noscript>
 </header>

@@ -46,7 +46,7 @@ public interface IStripeGateway
 /// takes effect without a restart. Constructing a <see cref="StripeClient"/> is cheap; it holds
 /// no connection of its own.
 /// </remarks>
-public sealed class StripeGateway : IStripeGateway
+public sealed partial class StripeGateway : IStripeGateway, ISubscriptionGateway
 {
     private readonly IOptionsMonitor<StripeOptions> _options;
 

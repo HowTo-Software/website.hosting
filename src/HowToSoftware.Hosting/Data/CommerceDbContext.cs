@@ -27,9 +27,16 @@ public sealed class CommerceDbContext(DbContextOptions<CommerceDbContext> option
     public DbSet<PromotionRedemption> PromotionRedemptions => Set<PromotionRedemption>();
     public DbSet<ServerTrialRecord> ServerTrials => Set<ServerTrialRecord>();
     public DbSet<TrialUpgradeOrderRecord> TrialUpgradeOrders => Set<TrialUpgradeOrderRecord>();
+    public DbSet<CustomerAccessRecord> CustomerAccess => Set<CustomerAccessRecord>();
+    public DbSet<CustomerSupportRecord> CustomerSupport => Set<CustomerSupportRecord>();
+    public DbSet<SubscriptionPlanChange> SubscriptionPlanChanges => Set<SubscriptionPlanChange>();
+    public DbSet<CustomerExternalIdentity> CustomerExternalIdentities => Set<CustomerExternalIdentity>();
+    public DbSet<ExternalIdentityFlow> ExternalIdentityFlows => Set<ExternalIdentityFlow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        CustomerAreaModelConfiguration.Configure(modelBuilder);
+        ExternalIdentityModelConfiguration.Configure(modelBuilder);
         modelBuilder.Entity<ServerTrialRecord>(entity =>
         {
             entity.HasKey(x => x.Id);

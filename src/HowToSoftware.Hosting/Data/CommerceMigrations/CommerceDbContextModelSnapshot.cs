@@ -17,7 +17,7 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -418,6 +418,115 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                         });
                 });
 
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.CustomerAccessRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ChallengeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("challenge_hash");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("ExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<long?>("SessionExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("session_expires_at");
+
+                    b.Property<string>("SessionHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("session_hash");
+
+                    b.Property<long?>("UsedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChallengeHash")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("SessionHash")
+                        .IsUnique()
+                        .HasFilter("[session_hash] IS NOT NULL");
+
+                    b.HasIndex("NormalizedEmail", "CreatedAt");
+
+                    b.ToTable("customer_access");
+                });
+
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.CustomerExternalIdentity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CustomerAccessId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("customer_access_id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Issuer")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("issuer")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<long>("LinkedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("linked_at");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("subject")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerAccessId", "Provider")
+                        .IsUnique();
+
+                    b.HasIndex("Provider", "Issuer", "Subject")
+                        .IsUnique();
+
+                    b.ToTable("customer_external_identities");
+                });
+
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.CustomerProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -463,6 +572,60 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                     b.ToTable("customer_profiles");
                 });
 
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.CustomerSupportRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasColumnName("locale");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<long?>("NotifiedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("notified_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)")
+                        .HasColumnName("subject");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotifiedAt");
+
+                    b.HasIndex("NormalizedEmail", "CreatedAt");
+
+                    b.ToTable("customer_support");
+                });
+
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.DeploymentEventRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -506,6 +669,82 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                     b.HasIndex("ProvisioningJobId", "CreatedAt");
 
                     b.ToTable("deployment_events");
+                });
+
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.ExternalIdentityFlow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BrowserSecretHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("browser_secret_hash");
+
+                    b.Property<long?>("ConsumedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CustomerAccessId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("customer_access_id");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("display_name");
+
+                    b.Property<long>("ExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("issuer")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("OwnerSessionHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("owner_session_hash");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("subject")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<long?>("VerifiedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("verified_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerAccessId");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("external_identity_flows");
                 });
 
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.GameDeploymentProfileRecord", b =>
@@ -1231,6 +1470,187 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                     b.ToTable("stripe_events");
                 });
 
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.SubscriptionPlanChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit")
+                        .HasColumnName("active");
+
+                    b.Property<int>("AllocationLimit")
+                        .HasColumnType("int")
+                        .HasColumnName("allocation_limit");
+
+                    b.Property<int>("BackupLimit")
+                        .HasColumnType("int")
+                        .HasColumnName("backup_limit");
+
+                    b.Property<string>("BaselineInvoiceId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("baseline_invoice_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("BillingPeriod")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasColumnName("billing_period");
+
+                    b.Property<bool>("CancellationRequested")
+                        .HasColumnType("bit")
+                        .HasColumnName("cancellation_requested");
+
+                    b.Property<int>("CpuPercent")
+                        .HasColumnType("int")
+                        .HasColumnName("cpu_percent");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<int>("DatabaseLimit")
+                        .HasColumnType("int")
+                        .HasColumnName("database_limit");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasColumnName("direction");
+
+                    b.Property<int>("DiskMb")
+                        .HasColumnType("int")
+                        .HasColumnName("disk_mb");
+
+                    b.Property<long>("DueNowMinor")
+                        .HasColumnType("bigint")
+                        .HasColumnName("due_now_minor");
+
+                    b.Property<long>("EffectiveAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("effective_at");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("failure_code");
+
+                    b.Property<Guid>("HostingServiceId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("hosting_service_id");
+
+                    b.Property<long?>("LeaseExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("lease_expires_at");
+
+                    b.Property<Guid?>("LeaseToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("lease_token");
+
+                    b.Property<int>("MemoryMb")
+                        .HasColumnType("int")
+                        .HasColumnName("memory_mb");
+
+                    b.Property<long>("NextInvoiceMinor")
+                        .HasColumnType("bigint")
+                        .HasColumnName("next_invoice_minor");
+
+                    b.Property<long>("ProrationAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("proration_at");
+
+                    b.Property<long>("QuoteExpiresAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("quote_expires_at");
+
+                    b.Property<string>("SourcePriceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("source_price_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("StripeCustomerId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("stripe_customer_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("StripeInvoiceId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("stripe_invoice_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("StripeScheduleId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("stripe_schedule_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("stripe_subscription_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("SubscriptionItemId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("subscription_item_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<Guid>("TargetPlanId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("target_plan_id");
+
+                    b.Property<string>("TargetPriceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("target_price_id")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostingServiceId")
+                        .IsUnique()
+                        .HasFilter("[active] = 1");
+
+                    b.HasIndex("StripeSubscriptionId");
+
+                    b.HasIndex("TargetPlanId");
+
+                    b.HasIndex("State", "Active");
+
+                    b.ToTable("subscription_plan_changes");
+                });
+
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.TrialUpgradeOrderRecord", b =>
                 {
                     b.Property<Guid>("OrderId")
@@ -1294,6 +1714,15 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.CustomerExternalIdentity", b =>
+                {
+                    b.HasOne("HowToSoftware.Hosting.Models.Commerce.CustomerAccessRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerAccessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.DeploymentEventRecord", b =>
                 {
                     b.HasOne("HowToSoftware.Hosting.Models.Commerce.HostingServiceRecord", null)
@@ -1307,6 +1736,14 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                         .HasForeignKey("ProvisioningJobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.ExternalIdentityFlow", b =>
+                {
+                    b.HasOne("HowToSoftware.Hosting.Models.Commerce.CustomerAccessRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerAccessId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.GameDeploymentProfileRecord", b =>
@@ -1389,6 +1826,21 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                         .WithMany()
                         .HasForeignKey("UpgradeOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.SubscriptionPlanChange", b =>
+                {
+                    b.HasOne("HowToSoftware.Hosting.Models.Commerce.HostingServiceRecord", null)
+                        .WithMany()
+                        .HasForeignKey("HostingServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HowToSoftware.Hosting.Models.Commerce.CommerceHostingPlan", null)
+                        .WithMany()
+                        .HasForeignKey("TargetPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HowToSoftware.Hosting.Models.Commerce.TrialUpgradeOrderRecord", b =>

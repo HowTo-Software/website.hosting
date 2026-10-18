@@ -7,6 +7,7 @@
 @inject IOptions<PterodactylOptions> Panel
 @inject IOptions<SiteOptions> Site
 @inject IStringLocalizer<CheckoutText> Text
+@inject IStringLocalizer<CustomerText> CustomerText
 
 <PageTitle>@Text["Trial.Page.Title"] | @Site.Value.Name</PageTitle>
 <HeadContent>
@@ -54,13 +55,44 @@
             {
                 <div class="trial-page__status">
                     <p class="hts-label">@Text["Trial.Account.Kicker"]</p>
-                    <h2>@Text[$"Trial.State.{account.State}"]</h2>
+                    <h2>@(account.Server?.Name ?? TrialServerIdentity.ServerName(account.DisplayName))</h2>
+                    <p class="trial-page__state" role="status">@Text[$"Trial.State.{account.State}"]</p>
                     <p class="trial-page__owner">@account.Email</p>
+                    <p class="trial-page__hint">@(account.GameSlug == "project-zomboid" ? "Project Zomboid" : "Minecraft")</p>
                     <p>@Text[$"Trial.StateBody.{account.State}"]</p>
-                    @if (account.ExpiresAt is { } expiresAt)
+                    @if (account.Server is { } server)
                     {
+                        <p class="trial-page__runtime">@CustomerText[server.Suspended ? "Trial.Suspended" : server.Installed ? "Trial.Installed" : "Trial.Installing"]</p>
+                        @if (server.Limits is { } limits)
+                        {
+                            <dl class="trial-page__specs">
+                                <div><dt>RAM</dt><dd>@(limits.MemoryMb / 1024m) GiB</dd></div>
+                                <div><dt>CPU</dt><dd>@(limits.CpuPercent == 0 ? CustomerText["Trial.Unlimited"].Value : $"{limits.CpuPercent}%")</dd></div>
+                                <div><dt>@Text["Trial.Spec.Storage"]</dt><dd>@(limits.DiskMb / 1024m) GiB</dd></div>
+                                @if (server.Address is { Length: > 0 } address && server.Port is > 0)
+                                { <div><dt>IP / @CustomerText["Trial.Port"]</dt><dd>@address:@server.Port</dd></div> }
+                            </dl>
+                        }
+                    }
+                    @if (account.ExpiresAt is { } expiresAt && account.State != TrialState.Converted)
+                    {
+                        @if (account.State == TrialState.Active)
+                        {
+                            <div class="trial-page__clock">
+                                <span>@CustomerText["Trial.Remaining"]</span>
+                                <strong data-trial-countdown data-expires-utc="@expiresAt.ToString("O")" data-expired-text="@CustomerText["Trial.Ended"]">@CustomerText["Trial.ClockFallback"]</strong>
+                            </div>
+                        }
                         <dl class="trial-page__dates">
-                            <div><dt>@Text["Trial.Account.Expires"]</dt><dd><time datetime="@expiresAt.ToString("O", CultureInfo.InvariantCulture)">@FormatUtc(expiresAt)</time></dd></div>
+                            <div><dt>@Text["Trial.Account.Expires"] · Brasília</dt><dd><time datetime="@expiresAt.ToString("O")">@TrialTime.Format(expiresAt, "America/Sao_Paulo", CultureInfo.CurrentUICulture)</time></dd></div>
+                            <div><dt><label for="trial-timezone">@CustomerText["Trial.UsTime"]</label>
+                                <select id="trial-timezone" data-trial-timezone>
+                                    <option value="America/New_York">@CustomerText["Trial.Zone.Eastern"]</option>
+                                    <option value="America/Chicago">@CustomerText["Trial.Zone.Central"]</option>
+                                    <option value="America/Denver">@CustomerText["Trial.Zone.Mountain"]</option>
+                                    <option value="America/Los_Angeles">@CustomerText["Trial.Zone.Pacific"]</option>
+                                </select></dt>
+                                <dd><time datetime="@expiresAt.ToString("O")" data-trial-local-time>@TrialTime.Format(expiresAt, "America/New_York", CultureInfo.CurrentUICulture)</time></dd></div>
                             @if (account.DeleteAfter is { } deleteAfter && account.State is TrialState.Expired or TrialState.Deleting)
                             {
                                 <div><dt>@Text["Trial.Account.DeleteAfter"]</dt><dd><time datetime="@deleteAfter.ToString("O", CultureInfo.InvariantCulture)">@FormatUtc(deleteAfter)</time></dd></div>
@@ -88,6 +120,16 @@
                             <p class="trial-page__hint">@Text["Trial.Account.ReadyEmail"]</p>
                         }
                     </div>
+                </div>
+            }
+            else if (Notice == "sent")
+            {
+                <div class="trial-page__confirmation trial-page__sent" role="status" tabindex="-1">
+                    <span class="trial-page__mail-icon" aria-hidden="true">✉</span>
+                    <h2>@CustomerText["Trial.SentTitle"]</h2>
+                    <p>@Text["Trial.Notice.Sent"]</p>
+                    <p class="trial-page__hint">@CustomerText["Trial.CheckSpam"]</p>
+                    <a class="trial-page__refresh" href="/trial">@CustomerText["Trial.BackToForm"]</a>
                 </div>
             }
             else

@@ -12,12 +12,15 @@ public sealed record TrialUpgradeReservation(bool Reserved, Guid? TrialId = null
 public sealed record TrialConversionResult(TrialConversionOutcome Outcome, TrialPanelServer? Server = null);
 public sealed record TrialAccountView(Guid Id, string Email, string DisplayName, string GameSlug, string? ProfileId, string? Version,
     TrialState State, int? ServerId, string? ServerIdentifier, DateTimeOffset? StartedAt, DateTimeOffset? ExpiresAt,
-    DateTimeOffset? DeleteAfter, bool CanUpgrade, Guid? UpgradeOrderId);
+    DateTimeOffset? DeleteAfter, bool CanUpgrade, Guid? UpgradeOrderId, TrialPanelServer? Server = null);
 public sealed record TrialPanelUser(int Id, string Email);
-public sealed record TrialPanelServer(int Id, string Identifier, string Uuid, bool Installed, bool Suspended);
+public sealed record TrialPanelServer(int Id, string Identifier, string Uuid, bool Installed, bool Suspended,
+    string? Name = null, TrialResourceLimits? Limits = null, string? Address = null, int? Port = null,
+    int UserId = 0, string? ExternalId = null);
 public sealed record TrialResourceLimits(int MemoryMb, int CpuPercent, int DiskMb, int Backups = 1, int Databases = 0, int Allocations = 1);
 public sealed record TrialProvisioningRequest(Guid TrialId, string ExternalId, int UserId, TrialResourceLimits Limits,
-    string GameSlug = "project-zomboid", string? ProfileId = null, string? Version = null, TrialGameProfile? Profile = null);
+    string GameSlug = "project-zomboid", string? ProfileId = null, string? Version = null, TrialGameProfile? Profile = null,
+    string? DisplayName = null);
 
 public interface ITrialService
 {
