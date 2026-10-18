@@ -139,6 +139,7 @@ jobs:
           gateway="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}')"
           docker run --detach --name hts-production-smoke --read-only --tmpfs /tmp \
             --security-opt no-new-privileges:true \
+            --volume /home/app/.aspnet/DataProtection-Keys \
             --publish 127.0.0.1:15147:8080 \
             --env HTS_SKIP_DOTENV=true \
             --env Trials__Enabled=false \
@@ -155,7 +156,7 @@ jobs:
         run: |
           if docker container inspect hts-production-smoke >/dev/null 2>&1; then
             docker logs --tail 60 hts-production-smoke
-            docker rm --force hts-production-smoke
+            docker rm --force --volumes hts-production-smoke
           fi
 
   deploy:
