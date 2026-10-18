@@ -10,7 +10,8 @@ services:
     restart: unless-stopped
 
     env_file:
-      - .env
+      - path: .env
+        format: raw
 
     ports:
       - "5147:8080"
@@ -18,5 +19,4 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      APP_ALLOWED_HOSTS: "localhost;127.0.0.1;[::1];192.168.1.206;howtoosoftware.com;www.howtoosoftware.com"
-      SQLSERVER_CONNECTION_STRING: "${SQLSERVER_CONNECTION_STRING}"
+      # Preserve APP_ALLOWED_HOSTS and credential-bearing values from the raw env_file.

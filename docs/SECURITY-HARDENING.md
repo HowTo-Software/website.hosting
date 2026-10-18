@@ -15,7 +15,7 @@ This document distinguishes application controls from infrastructure configurati
 - **Backend authority:** plan, period, and price are resolved again on the server. Signed Stripe webhooks verify currency and amount before provisioning.
 - **SQL injection:** database access uses parameterized EF Core/LINQ. Browser fields do not generate SQL; existing raw SQL is a static, versioned migration.
 - **XSS and clickjacking:** Razor encodes content by default. The homepage uses `MarkupString` only for `JsonSerializer`-produced JSON-LD inserted with a nonce, without arbitrary user HTML. Do not render untrusted content raw. CSP uses a random per-response nonce and blocks remote scripts, objects, external `base`, and framing by another site.
-- **CSRF:** mutable forms use antiforgery. The webhook is the exception, using a Stripe signature over the original body.
+- **CSRF:** mutable forms use antiforgery. The host-only, HttpOnly, SameSite=Strict cookie uses SameAsRequest so trusted HTTPS requests emit Secure cookies while direct HTTP LAN forms remain usable. Its name is valid on both transports: a `__Host-` prefix with no Secure flag would be rejected by browsers. The webhook is the exception, using a Stripe signature over the original body.
 - **Automated abuse:** order status, webhook, and health checks have per-IP limits without overflow queuing. Webhook bodies and general Kestrel request limits are bounded.
 - **Data and logs:** EF Core does not log sensitive values; public status responses exclude price, email, internal order ID, and server identifiers.
 - **Lab surface:** manual Pterodactyl creation/deletion requires both `Development` and an explicit flag. The flag cannot open the lab in staging/production.

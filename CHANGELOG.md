@@ -8,7 +8,24 @@
 
 This changelog records the current state and known local work. No release tag has been assigned to the redesign in this document.
 
-## Unreleased — visual redesign and documentation
+## Unreleased — production readiness (2026-10-18)
+
+- Based the production-readiness branch on the current GitHub main, including the merged redesign, checkout promotion and Pterodactyl pagination fixes.
+- Updated EF Core, ASP.NET Core test hosting and dotnet-ef to 10.0.13, TimeProvider.Testing to 10.11.0, and Microsoft.NET.Test.Sdk to 18.11.0. Aligned the explicit cryptography package with .NET 10 at 10.0.13.
+- Added the production storefront hostname to the default host allowlist. Compose now preserves private host configuration; local Compose also uses raw env files so passwords are not interpolated or overwritten.
+- Corrected the antiforgery cookie name for direct HTTP deployments, retaining HttpOnly, SameSite=Strict, a host-only scope and Secure on HTTPS.
+- Added production tests for hostname filtering, real CSRF form round trips and trusted/untrusted proxy behavior.
+- Added a reproducible published-runtime smoke check for uncached refreshes, Blazor/JS/CSS/font assets, public routes, antiforgery and HTTPS proxy headers. CI runs it inside the actual nonroot/read-only image before deployment and rejects reported NuGet vulnerabilities.
+- Updated deployment instructions with the private host/proxy configuration requirements and the boundary between isolated runtime checks and real staging integrations.
+
+Validation: Release build and publish without warnings/errors, 639 passing automated tests,
+100 isolated published-runtime smoke assertions, and 27 Playwright assertions across desktop
+and mobile with no browser errors or failed asset requests. NuGet reported no outdated direct
+packages or known vulnerabilities, including transitive dependencies. Real SQL, SMTP, Stripe
+and Pterodactyl operations were not invoked. The container smoke gate must also pass on the
+GitHub-hosted Docker runner before merging; Docker was unavailable on the local workstation.
+
+## Previous delivery — visual redesign and documentation
 
 ### Frontend
 

@@ -46,6 +46,23 @@ jobs:
       - name: Restore
         run: dotnet restore HowToSoftware.Hosting.slnx
 
+      - name: Audit dependencies
+        shell: pwsh
+        run: |
+          $report = dotnet list HowToSoftware.Hosting.slnx package --vulnerable --include-transitive --format json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or @($report.problems).Where({ $_.severity -eq 'error' }).Count -gt 0) {
+            throw 'The NuGet vulnerability audit could not complete.'
+          }
+          foreach ($project in $report.projects) {
+            foreach ($framework in $project.frameworks) {
+              foreach ($package in @($framework.topLevelPackages) + @($framework.transitivePackages)) {
+                if ($package.vulnerabilities.Count -gt 0) {
+                  throw "Vulnerable dependency: $($package.id) $($package.resolvedVersion)"
+                }
+              }
+            }
+          }
+
       # Release treats warnings as errors (Directory.Build.props).
       - name: Build
         run: dotnet build HowToSoftware.Hosting.slnx -c Release --no-restore
@@ -106,10 +123,41 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # A successful compile does not prove fingerprinted Blazor assets survived publishing.
+      # Run the actual nonroot/read-only image without secrets or external integrations.
+      - name: Start isolated production image
+        shell: bash
+        env:
+          SMOKE_IMAGE: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+        run: |
+          gateway="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}')"
+          docker run --detach --name hts-production-smoke --read-only --tmpfs /tmp \
+            --security-opt no-new-privileges:true \
+            --volume /home/app/.aspnet/DataProtection-Keys \
+            --publish 127.0.0.1:15147:8080 \
+            --env HTS_SKIP_DOTENV=true \
+            --env Trials__Enabled=false \
+            --env Security__KnownProxies__0="$gateway" \
+            "$SMOKE_IMAGE"
+
+      - name: Verify published routes, assets, CSRF and HTTPS proxy
+        shell: pwsh
+        run: ./deploy/smoke-test.ps1 -CheckForwardedHttps
+
+      - name: Clean up smoke container
+        if: always()
+        shell: bash
+        run: |
+          if docker container inspect hts-production-smoke >/dev/null 2>&1; then
+            docker logs --tail 60 hts-production-smoke
+            docker rm --force --volumes hts-production-smoke
+          fi
 
   deploy:
     name: Deploy to production

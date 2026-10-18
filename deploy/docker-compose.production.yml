@@ -26,8 +26,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      # The reverse proxy (Security__KnownProxies__0 in .env) forwards with an allowed Host.
-      APP_ALLOWED_HOSTS: "localhost;127.0.0.1;[::1];192.168.1.206;howtoosoftware.com;www.howtoosoftware.com"
+      # APP_ALLOWED_HOSTS comes unchanged from the private raw env_file. If unset, the
+      # application's explicit allowlist includes host.howto.software and local health checks.
     volumes:
       # Keeps antiforgery tokens and cookies valid across deploys.
       - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
