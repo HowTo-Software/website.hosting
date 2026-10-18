@@ -28,13 +28,13 @@
     <value>HARDWARE</value>
   </data>
   <data name="Hero.Line1" xml:space="preserve">
-    <value>Our infrastructure.</value>
+    <value>Our infrastructure</value>
   </data>
   <data name="Hero.Line2" xml:space="preserve">
     <value>Built for</value>
   </data>
   <data name="Hero.Line3" xml:space="preserve">
-    <value>your world.</value>
+    <value>your world</value>
   </data>
   <data name="Hero.Rail.Platform" xml:space="preserve">
     <value>PLATFORM</value>
@@ -457,7 +457,7 @@
     <value>These are the host specifications. Your server's memory, CPU allocation and storage are defined by the plan you choose.</value>
   </data>
   <data name="Overview.GalleryTitle" xml:space="preserve">
-    <value>A closer look at our hardware.</value>
+    <value>A closer look at our hardware</value>
   </data>
   <data name="Overview.GalleryLede" xml:space="preserve">
     <value>Photographs of our own rack: its front, its interior and the equipment mounted inside.</value>
@@ -466,13 +466,13 @@
     <value>Behind your server</value>
   </data>
   <data name="Overview.OperationsTitle" xml:space="preserve">
-    <value>One platform. Separate responsibilities.</value>
+    <value>One platform. Separate responsibilities</value>
   </data>
   <data name="Overview.OperationsLede" xml:space="preserve">
     <value>The website, control panel and game workloads have distinct roles. Open a topic to see how they fit together.</value>
   </data>
   <data name="Overview.ClosingTitle" xml:space="preserve">
-    <value>Choose a home for your next world.</value>
+    <value>Choose a home for your next world</value>
   </data>
   <data name="Overview.ClosingNote" xml:space="preserve">
     <value>Compare the plans or request a test server before choosing your configuration.</value>

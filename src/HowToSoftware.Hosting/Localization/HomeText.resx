@@ -22,7 +22,7 @@
     <value>that refuse</value>
   </data>
   <data name="Hero.Line3" xml:space="preserve">
-    <value>to die.</value>
+    <value>to die</value>
   </data>
   <data name="Hero.Copy" xml:space="preserve">
     <value>Persistent Knox County worlds on dedicated allocation. Workshop collections resolved for you, provisioning handled by software, and a control panel that treats your server like the running system it is.</value>
@@ -76,7 +76,7 @@
     <value>running</value>
   </data>
   <data name="World.Line3" xml:space="preserve">
-    <value>without you.</value>
+    <value>without you</value>
   </data>
   <data name="World.Body1" xml:space="preserve">
     <value>A Project Zomboid world is a long-lived simulation, not a match. Map state, safehouses, vehicles and loot are written to storage that outlives restarts, build changes and rebuilds of the instance underneath it.</value>
@@ -109,7 +109,7 @@
     <value>Install a mod</value>
   </data>
   <data name="Workshop.Accent" xml:space="preserve">
-    <value>in one click.</value>
+    <value>in one click</value>
   </data>
   <data name="Workshop.Body" xml:space="preserve">
     <value>Adding a mod to a Project Zomboid server normally means finding it on the Workshop, copying two different identifiers out of the page, pasting them into two different config lines and getting the order right. Our panel does that part. You search, you press install, and the server is configured on its next restart.</value>
@@ -142,7 +142,7 @@
     <value>From order to</value>
   </data>
   <data name="Provisioning.Accent" xml:space="preserve">
-    <value>world online.</value>
+    <value>world online</value>
   </data>
   <data name="Provisioning.Lede" xml:space="preserve">
     <value>Five stages, no hand-offs. Follow them down the page and watch the deployment path build itself.</value>
@@ -208,7 +208,7 @@
     <value>The whole server,</value>
   </data>
   <data name="Cp.Accent" xml:space="preserve">
-    <value>one screen.</value>
+    <value>one screen</value>
   </data>
   <data name="Cp.Lede" xml:space="preserve">
     <value>Power, resources, console, mods and files in a single interface. Try it - the controls below drive real component state on illustrative data.</value>
@@ -298,7 +298,7 @@
     <value>Worlds land on</value>
   </data>
   <data name="Nodes.Accent" xml:space="preserve">
-    <value>real metal.</value>
+    <value>real metal</value>
   </data>
   <data name="Nodes.Lede" xml:space="preserve">
     <value>Instances are placed on nodes with headroom to spare, and your allocation is reserved before a single file is written.</value>
@@ -328,7 +328,7 @@
     <value>Before you</value>
   </data>
   <data name="Faq.Accent" xml:space="preserve">
-    <value>commit a world.</value>
+    <value>commit a world</value>
   </data>
   <data name="Faq.Note" xml:space="preserve">
     <value>Still deciding whether the platform fits your community? Start here, then talk to us about anything this does not cover.</value>
@@ -343,7 +343,7 @@
     <value>Bring your community</value>
   </data>
   <data name="Closing.Accent" xml:space="preserve">
-    <value>to Knox County.</value>
+    <value>to Knox County</value>
   </data>
   <data name="Closing.Lede" xml:space="preserve">
     <value>We are onboarding the first Project Zomboid worlds now. Tell us how your group plays and we will get one stood up.</value>
@@ -358,7 +358,7 @@
     <value>DIRECT LINE</value>
   </data>
   <data name="Closing.ContactTitle" xml:space="preserve">
-    <value>Talk to the people building it.</value>
+    <value>Talk to the people building it</value>
   </data>
   <data name="Closing.ContactCopy" xml:space="preserve">
     <value>Describe your community - how many players, how heavily you mod, how you like to play - and we will match it to the right plan, or price a build that is not on the list.</value>
@@ -469,7 +469,7 @@
     <value>WORKSHOP</value>
   </data>
   <data name="Cap01.Headline" xml:space="preserve">
-    <value>82 mods? Good.</value>
+    <value>82 mods? Good</value>
   </data>
   <data name="Cap01.Body" xml:space="preserve">
     <value>A large Workshop collection should not turn server setup into a second job. Paste a collection, and the platform resolves the item list, writes the mod and Workshop identifiers in the right order, and keeps them in step every time you change something.</value>
@@ -490,7 +490,7 @@
     <value>PERSISTENCE</value>
   </data>
   <data name="Cap02.Headline" xml:space="preserve">
-    <value>Your world outlives the server.</value>
+    <value>Your world outlives the server</value>
   </data>
   <data name="Cap02.Body" xml:space="preserve">
     <value>Map state, safehouses and loot live on storage that survives restarts, version changes and rebuilds of the instance underneath it. Rolling a mod back does not mean rolling your community back.</value>
@@ -511,7 +511,7 @@
     <value>CONTROL</value>
   </data>
   <data name="Cap03.Headline" xml:space="preserve">
-    <value>Every knob, none of the FTP.</value>
+    <value>Every knob, none of the FTP</value>
   </data>
   <data name="Cap03.Body" xml:space="preserve">
     <value>Sandbox rules, INI configuration, player permissions and the live console all sit in one panel. The things you would normally email support about are buttons instead.</value>
@@ -532,7 +532,7 @@
     <value>BUILD 42</value>
   </data>
   <data name="Cap04.Headline" xml:space="preserve">
-    <value>Versioned, not frozen.</value>
+    <value>Versioned, not frozen</value>
   </data>
   <data name="Cap04.Body" xml:space="preserve">
     <value>Server builds are handled as configurable environments rather than one fixed version, so an instance can follow the build your community actually plays. We will publish exactly which builds are selectable at launch.</value>
@@ -715,7 +715,7 @@
     <value>PLANS</value>
   </data>
   <data name="PlansTeaser.Title" xml:space="preserve">
-    <value>Eight tiers, one rate card.</value>
+    <value>Eight tiers, one rate card</value>
   </data>
   <data name="PlansTeaser.Lede" xml:space="preserve">
     <value>Project Zomboid plans run from 4 GB to 16 GB, and every price on them is the same three published rates applied to what the tier ships. They have a page of their own.</value>
@@ -814,7 +814,7 @@
     <value>OUR OWN SOFTWARE</value>
   </data>
   <data name="Bot.Title" xml:space="preserve">
-    <value>A server that watches itself.</value>
+    <value>A server that watches itself</value>
   </data>
   <data name="Bot.Lede" xml:space="preserve">
     <value>Servers configured with more than 5 GB of memory can run our own server-side management bot, built here rather than bought in. It sits alongside the world and exists to help hold performance steady as players, mods and saved state accumulate.</value>

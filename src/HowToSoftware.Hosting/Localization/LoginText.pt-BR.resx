@@ -25,7 +25,7 @@
     <value>Acesse seu</value>
   </data>
   <data name="HeadingAccent" xml:space="preserve">
-    <value>painel de controle.</value>
+    <value>painel de controle</value>
   </data>
   <data name="Lede" xml:space="preserve">
     <value>Ações de energia, console ao vivo, coleções do Workshop e configuração do mundo — tudo atrás de uma única porta.</value>
@@ -181,7 +181,7 @@
     <value>CONTA NOVA</value>
   </data>
   <data name="Register.Title" xml:space="preserve">
-    <value>Crie sua conta.</value>
+    <value>Crie sua conta</value>
   </data>
   <data name="Register.Lede" xml:space="preserve">
     <value>Dois campos. A gente cria a conta no painel e ele escreve para você com um link para definir sua própria senha.</value>

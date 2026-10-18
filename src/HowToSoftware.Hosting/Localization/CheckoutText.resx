@@ -22,7 +22,7 @@
     <value>Game hosting</value>
   </data>
   <data name="GameHosting.Title" xml:space="preserve">
-    <value>Choose your game. Build your server.</value>
+    <value>Choose your game. Build your server</value>
   </data>
   <data name="GameHosting.Lede" xml:space="preserve">
     <value>Our own hardware, your HTS control panel, and automated setup. Start with the game, compare the resources, and choose the plan for your community.</value>
@@ -67,7 +67,7 @@
     <value>Another game</value>
   </data>
   <data name="GameHosting.RequestTitle" xml:space="preserve">
-    <value>Not listed? Ask.</value>
+    <value>Not listed? Ask</value>
   </data>
   <data name="GameHosting.RequestBody" xml:space="preserve">
     <value>If it has a dedicated server and runs in a container, we can look at it. Write with the game and the number of players you expect.</value>
@@ -130,7 +130,7 @@
     <value>Game hosting</value>
   </data>
   <data name="Zomboid.Title" xml:space="preserve">
-    <value>Your world. Your Project Zomboid server.</value>
+    <value>Your world. Your Project Zomboid server</value>
   </data>
   <data name="Zomboid.Lede" xml:space="preserve">
     <value>Choose the resources your community needs. Workshop mods, console, and file access come with every plan, managed through the HTS control panel.</value>
@@ -160,7 +160,7 @@
     <value>What every server gets</value>
   </data>
   <data name="Zomboid.FeatureTitle" xml:space="preserve">
-    <value>The same platform on every tier.</value>
+    <value>The same platform on every tier</value>
   </data>
   <data name="Zomboid.Feature.Build42" xml:space="preserve">
     <value>Build 41 and 42</value>
@@ -223,7 +223,7 @@
     <value>24-hour trial</value>
   </data>
   <data name="Trial.Title" xml:space="preserve">
-    <value>Your world. Your server. Try it for 24 hours.</value>
+    <value>Your world. Your server. Try it for 24 hours</value>
   </data>
   <data name="Trial.Body" xml:space="preserve">
     <value>Create a Project Zomboid or Minecraft trial on HTS. Verify your email, explore the panel and keep the same world when you choose a plan.</value>
@@ -238,7 +238,7 @@
     <value>Plans</value>
   </data>
   <data name="Picker.Title" xml:space="preserve">
-    <value>The right resources for your world.</value>
+    <value>The right resources for your world</value>
   </data>
   <data name="Picker.Lede" xml:space="preserve">
     <value>{2} plans, from {0} to {1} GB RAM. Compare the resources and choose monthly, quarterly, or annual billing.</value>
@@ -448,13 +448,13 @@
     <value>Confirming your payment</value>
   </data>
   <data name="Success.TitlePaid" xml:space="preserve">
-    <value>Payment confirmed. Building your server.</value>
+    <value>Payment confirmed. Building your server</value>
   </data>
   <data name="Success.TitleActive" xml:space="preserve">
-    <value>Your server is online.</value>
+    <value>Your server is online</value>
   </data>
   <data name="Success.TitleFailed" xml:space="preserve">
-    <value>Something needs a look.</value>
+    <value>Something needs a look</value>
   </data>
   <data name="Success.TitleUnknown" xml:space="preserve">
     <value>No order for this link</value>
@@ -523,7 +523,7 @@
     <value>Checkout</value>
   </data>
   <data name="Cancel.Title" xml:space="preserve">
-    <value>Payment cancelled.</value>
+    <value>Payment cancelled</value>
   </data>
   <data name="Cancel.Lede" xml:space="preserve">
     <value>Nothing was charged. Your configuration is kept on this page - pick it up where you left it, or change the billing period.</value>
@@ -546,7 +546,7 @@
     <value>hours</value>
   </data>
   <data name="Trial.Page.Title" xml:space="preserve">
-    <value>Start with your own trial server.</value>
+    <value>Start with your own trial server</value>
   </data>
   <data name="Trial.Page.Lede" xml:space="preserve">
     <value>Play for {0} hours on HTS infrastructure. After the trial, your server is suspended and your world is kept for {1} days so you can choose a plan.</value>
@@ -576,7 +576,7 @@
     <value>One trial per panel account across all games. The trial starts when installation finishes. If you do not upgrade within {0} days of expiry, the trial server and its data are deleted.</value>
   </data>
   <data name="Trial.Select.Title" xml:space="preserve">
-    <value>Choose your game.</value>
+    <value>Choose your game</value>
   </data>
   <data name="Trial.Select.Game" xml:space="preserve">
     <value>Trial game</value>
@@ -618,7 +618,7 @@
     <value>Email confirmation</value>
   </data>
   <data name="Trial.Verify.Title" xml:space="preserve">
-    <value>Confirm and continue.</value>
+    <value>Confirm and continue</value>
   </data>
   <data name="Trial.Verify.Body" xml:space="preserve">
     <value>Confirm ownership of your email to activate your trial or recover access to your existing server. Opening this page alone does not create a server.</value>
