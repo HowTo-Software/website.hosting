@@ -4,11 +4,11 @@
 >
 > **Owner:** HTS / HowToSoftware maintainers
 >
-> **Last updated:** 2026-10-05
+> **Last updated:** 2026-10-18
 
 [Index](README.md) · [Pipeline](phase-5-deployment/ci-cd.md) · [Runbook](phase-6-operations/runbook.md) · [Configuration](phase-3-development/configuration.md)
 
-The code defines Docker image deployment through GitHub Actions. PRs run build/tests/image build; a push to main publishes an image and enters the production Environment. Reviewer approval depends on GitHub Settings, not just YAML.
+The code defines Docker image deployment through GitHub Actions. PRs run dependency auditing, build/tests, image build and isolated runtime smoke checks; a push to main publishes an image and enters the production Environment after these checks pass. Reviewer approval depends on GitHub Settings, not just YAML.
 
 The previous guide recorded host `192.168.1.206`, user `htsadmin`, and URL `https://host.howto.software`. These are deployment references; the documentation review **did not verify host state, DNS, credentials, runner, or approval rules**.
 
@@ -20,6 +20,7 @@ The previous guide recorded host `192.168.1.206`, user `htsadmin`, and URL `http
 | Deployment script | [deploy/deploy.sh](../deploy/deploy.sh) |
 | Production Compose | [deploy/docker-compose.production.yml](../deploy/docker-compose.production.yml) |
 | Bootstrap | [deploy/bootstrap-server.sh](../deploy/bootstrap-server.sh) |
+| Runtime smoke checks | [deploy/smoke-test.ps1](../deploy/smoke-test.ps1) |
 | Image | ghcr.io/howto-software/howtoosoftware-hosting-prototype:sha-commit |
 | Container | hts-hosting-site |
 | Host → container port | 5147 → 8080 |
@@ -33,9 +34,44 @@ The previous guide recorded host `192.168.1.206`, user `htsadmin`, and URL `http
 - Available commerce SQL and migration compatibility with the previous image.
 - Recoverable backups and separate migration/runtime credentials where applicable.
 - GitHub `production` Environment with suitable reviewers/branches; the runner must not execute PRs.
-- Compose supporting `env_file.format: raw`.
+- Docker Compose 2.30.0 or newer, supporting `env_file.format: raw`.
 
-Versioned BaseUrl/AllowedHosts also use `howtoosoftware.com`; the workflow points to `host.howto.software`. Verify effective settings and proxy Host before publishing.
+The versioned host allowlist includes `host.howto.software`, the older public domains and
+loopback health checks. Both Compose files preserve `APP_ALLOWED_HOSTS` from their private
+raw env file rather than replacing it with a hardcoded list. Set it to the intended public
+hostname plus `localhost;127.0.0.1;[::1]`; include a LAN IP only when that access is needed.
+If the variable is already present in the server's private `.env`, update its value there
+before deployment: changing the repository default does not override an explicit value.
+Set `APP_BASE_URL=https://host.howto.software` (or the actual public origin) separately for
+canonical links, email links and payment returns. Static asset URLs stay same-origin.
+
+Configure `Security__KnownProxies__0` with the address of the immediate reverse proxy as
+seen by the container. The proxy must preserve the allowed Host and provide matching
+`X-Forwarded-For` and `X-Forwarded-Proto` headers. Unknown peers cannot enable HTTPS through
+headers. A trusted HTTPS request receives Secure antiforgery cookies, HSTS and a CSP with
+`upgrade-insecure-requests`; direct HTTP receives no browser-side scheme upgrade.
+
+## Runtime verification before deployment
+
+The CI image job loads the built image, starts it with the production environment, nonroot
+user, read-only filesystem and no integration credentials, then runs `smoke-test.ps1`.
+The check covers repeated uncached homepage requests, the configured public hostname,
+public routes, fingerprinted JS/CSS/fonts, HTTP and trusted HTTPS transport policy, and a
+real antiforgery cookie/token form round trip. A POST without its cookie must still fail.
+An image or smoke failure blocks the deploy job. Pull requests never run on production.
+
+To repeat the request checks against an **isolated, unconfigured** published application:
+
+```powershell
+./deploy/smoke-test.ps1 -BaseUrl http://127.0.0.1:15147
+```
+
+Add `-CheckForwardedHttps` only when the test peer is an explicitly trusted proxy. Do not
+run this fixture against a configured live service: it intentionally posts a synthetic
+trial recovery form and expects the disabled integration result. This verifies runtime
+packaging and request boundaries, not actual mail delivery, SQL migrations, a real Stripe
+charge or a Pterodactyl deployment. Validate those services with controlled staging resources
+and the integration-specific guides before enabling commerce or new trials.
 
 ## Expected layout
 

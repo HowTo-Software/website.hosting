@@ -30,7 +30,7 @@ RUNNER_NAME="hts-production-$(hostname)"
 readonly RUNNER_NAME
 
 # Set by the image or by the compose file itself, so not part of the operator's configuration.
-readonly NON_CONFIG_KEYS='^(PATH|HOME|HOSTNAME|APP_UID|ASPNET_VERSION|DOTNET_VERSION|DOTNET_RUNNING_IN_CONTAINER|DOTNET_gcServer|ASPNETCORE_HTTP_PORTS|ASPNETCORE_ENVIRONMENT|ASPNETCORE_URLS|APP_ALLOWED_HOSTS)='
+readonly NON_CONFIG_KEYS='^(PATH|HOME|HOSTNAME|APP_UID|ASPNET_VERSION|DOTNET_VERSION|DOTNET_RUNNING_IN_CONTAINER|DOTNET_gcServer|ASPNETCORE_HTTP_PORTS|ASPNETCORE_ENVIRONMENT|ASPNETCORE_URLS)='
 
 log() { printf '[bootstrap] %s\n' "$*"; }
 fail() { printf '[bootstrap] ERROR: %s\n' "$*" >&2; exit 1; }

@@ -44,7 +44,7 @@ public static class SecurityServiceExtensions
                 }
             }
         });
-        services.AddAntiforgery(options => ConfigureAntiforgery(options, environment));
+        services.AddAntiforgery(ConfigureAntiforgery);
         services.AddHsts(options =>
         {
             options.MaxAge = TimeSpan.FromDays(365);
@@ -88,9 +88,7 @@ public static class SecurityServiceExtensions
         return services;
     }
 
-    private static void ConfigureAntiforgery(
-        AntiforgeryOptions options,
-        IWebHostEnvironment environment)
+    private static void ConfigureAntiforgery(AntiforgeryOptions options)
     {
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
@@ -101,9 +99,10 @@ public static class SecurityServiceExtensions
         // throw before the page can load. Production HTTP is redirected before tokens are issued
         // whenever an HTTPS endpoint is configured.
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.Name = environment.IsDevelopment()
-            ? "HTS.Antiforgery.v2"
-            : "__Host-HTS-Antiforgery.v1";
+        // A __Host- prefix requires Secure even on HTTP. Browsers discard that combination
+        // on direct LAN deployments, making every form POST fail CSRF validation. Keep a
+        // host-only cookie (no Domain) with a name valid on both supported transports.
+        options.Cookie.Name = "HTS.Antiforgery.v3";
         options.HeaderName = "X-HTS-CSRF";
     }
 
