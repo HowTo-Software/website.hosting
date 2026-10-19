@@ -176,4 +176,13 @@ public sealed class CustomerEndpointTests : IDisposable
         public Task<bool> SupportAsync(string owner, string subject, string message, string locale, CancellationToken ct) { SupportCalls++; Owner = owner; return Task.FromResult(true); }
         public Task DeliverPendingAsync(CancellationToken ct) => Task.CompletedTask;
     }
+    public void Dispose()
+    {
+        foreach (var factory in _factories)
+        {
+            factory.Dispose();
+        }
+
+        _factories.Clear();
+    }
 }
