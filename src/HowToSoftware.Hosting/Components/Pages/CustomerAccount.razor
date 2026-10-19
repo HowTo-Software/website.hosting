@@ -242,7 +242,7 @@
     private string? NoticeKey => Notice switch {
         "sent" => "Portal.Sent", "invalid" => "Portal.Invalid", "unavailable" => "Portal.Unavailable",
         "failed" => "Portal.Failed", "success" => "Portal.Success", "ticket" => "Portal.TicketSent",
-        "quoted" or "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "selection" => "Portal.Result." + Notice,
+        "quoted" or "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "selection" or "payment-method" => "Portal.Result." + Notice,
         _ => null
     };
     private string? NoticeText => Notice switch

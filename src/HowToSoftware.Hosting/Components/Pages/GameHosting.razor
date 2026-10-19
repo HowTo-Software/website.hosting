@@ -9,6 +9,7 @@
 @inject IPlanCatalogService Catalog
 @inject IOptions<SiteOptions> Site
 @inject IStringLocalizer<CheckoutText> Text
+@inject StorefrontCurrencyService Currencies
 
 <PageTitle>@Text["GameHosting.MetaTitle"] | @Site.Value.Name</PageTitle>
 
@@ -87,7 +88,7 @@
                                     {
                                         <span class="price-from hts-label">@Text["GameHosting.From"]</span>
                                         <span class="price-figure">
-                                            <span class="price-symbol hts-mono">@Catalog.CurrencySymbol</span><span class="price-amount hts-mono">@price.ToString("0.00", Invariant)</span>
+                                            <span class="price-symbol hts-mono">@Currencies.Symbol(Currency)</span><span class="price-amount hts-mono">@Currencies.FormatCatalogNumber(price, Currency)</span>
                                             <span class="price-unit">@Text["GameHosting.PerMonth"]</span>
                                         </span>
                                     }
@@ -143,7 +144,8 @@
 <TrialServerBanner />
 
 @code {
-    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string Currency { get; set; } = "usd";
 
     private string RequestHref =>
         $"mailto:{Site.Value.ContactEmail}?subject={Uri.EscapeDataString(Text["GameHosting.RequestSubject"].Value)}";

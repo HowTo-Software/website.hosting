@@ -136,4 +136,5 @@ Se você não solicitou o acesso, ignore esta mensagem. Nenhuma conta ou assinat
   <data name="Trial.Zone.Mountain" xml:space="preserve"><value>Montanhas dos EUA (MT)</value></data>
   <data name="Trial.Zone.Pacific" xml:space="preserve"><value>Pacífico dos EUA (PT)</value></data>
   <data name="Portal.Result.selection" xml:space="preserve"><value>O plano está indisponível ou não é compatível com o serviço selecionado.</value></data>
+  <data name="Portal.Result.payment-method" xml:space="preserve"><value>Alterações de planos com Pix exigem análise do suporte e uma autorização de pagamento compatível. Seu plano atual não foi alterado.</value></data>
 </root>

@@ -181,6 +181,10 @@ public sealed class SecurityHeadersMiddleware
         if (context.Response.ContentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) is true)
         {
             headers["Content-Security-Policy"] = BuildContentSecurityPolicy(context, nonce);
+            // Both browser region and an explicit language cookie affect the rendered document.
+            // Never let a shared cache serve another visitor's language/currency variant.
+            var vary = headers.Vary.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            headers.Vary = string.Join(", ", vary.Concat(["Accept-Language", "Cookie"]).Distinct(StringComparer.OrdinalIgnoreCase));
         }
 
         if (IsPaymentPath(context.Request.Path))

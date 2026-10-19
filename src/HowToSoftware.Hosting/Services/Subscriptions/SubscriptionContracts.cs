@@ -19,7 +19,7 @@ public sealed class SubscriptionManagementOptions
 
 public sealed record ManagedService(Guid Id, Guid OrderId, Guid GameId, string GameSlug,
     CommerceHostingPlan Plan, string BillingPeriod, string SubscriptionId, string CustomerId,
-    string OwnerEmail, int? ServerId, string? ServerUuid);
+    string OwnerEmail, int? ServerId, string? ServerUuid, string Currency = "usd");
 public sealed record ManagedPlan(CommerceHostingPlan Plan, string? StripePriceId);
 public sealed record SubscriptionQuoteResult(bool Success, string Code, SubscriptionPlanChange? Change = null);
 
@@ -28,6 +28,8 @@ public interface ISubscriptionStore
     Task<IReadOnlyList<ManagedService>> ListOwnedAsync(string email, CancellationToken ct);
     Task<ManagedService?> FindServiceAsync(Guid id, CancellationToken ct);
     Task<IReadOnlyList<ManagedPlan>> ListPlansAsync(Guid gameId, string period, CancellationToken ct);
+    async Task<IReadOnlyList<ManagedPlan>> ListPlansAsync(Guid gameId, string period, string currency, CancellationToken ct) =>
+        currency == "usd" ? await ListPlansAsync(gameId, period, ct) : [];
     Task<SubscriptionPlanChange?> FindChangeAsync(Guid id, CancellationToken ct);
     Task<SubscriptionPlanChange?> ActiveChangeAsync(Guid serviceId, CancellationToken ct);
     Task<bool> AddChangeAsync(SubscriptionPlanChange change, CancellationToken ct);

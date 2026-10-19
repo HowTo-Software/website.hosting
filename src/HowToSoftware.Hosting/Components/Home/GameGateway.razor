@@ -3,6 +3,7 @@
 @inject IPlanCatalogService Catalog
 @inject IOptions<SiteOptions> Site
 @inject IStringLocalizer<StorefrontText> Text
+@inject StorefrontCurrencyService Currencies
 
 <section class="gateway" id="games" aria-labelledby="games-heading">
     <div class="hts-container hts-container--wide">
@@ -32,7 +33,7 @@
                                 <div class="game-from">
                                     @if (price is { } amount)
                                     {
-                                        <span>@Text["Games.From"]</span><strong>@Catalog.CurrencySymbol@amount.ToString("0.00", CultureInfo.InvariantCulture)<small>@Text["Plans.PerMonth"]</small></strong>
+                                        <span>@Text["Games.From"]</span><strong>@Currencies.FormatCatalogAmount(amount, Currency)<small>@Text["Plans.PerMonth"]</small></strong>
                                     }
                                     else { <strong class="unpriced">@Text["Games.Pending"]</strong> }
                                     @if (plans.Count > 0) { <p>@Text["Games.Range", plans.Count, plans[0].MemoryGb, plans[^1].MemoryGb]</p> }
@@ -53,6 +54,9 @@
 </section>
 
 @code {
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string Currency { get; set; } = "usd";
+
     private string RequestHref => $"mailto:{Site.Value.ContactEmail}?subject={Uri.EscapeDataString(Text["Games.RequestSubject"].Value)}";
     private string NotifyHref(HostedGame game) => $"mailto:{Site.Value.ContactEmail}?subject={Uri.EscapeDataString(Text["Games.NotifySubject", game.Name].Value)}";
 }

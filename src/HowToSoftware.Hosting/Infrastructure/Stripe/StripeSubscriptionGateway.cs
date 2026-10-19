@@ -20,7 +20,10 @@ public interface ISubscriptionGateway
 public sealed partial class StripeGateway
 {
     public Task<Subscription> ReadSubscriptionAsync(string id, CancellationToken ct) =>
-        Client().V1.Subscriptions.GetAsync(id, new SubscriptionGetOptions { Expand = ["latest_invoice"] }, cancellationToken: ct);
+        Client().V1.Subscriptions.GetAsync(id, new SubscriptionGetOptions
+        {
+            Expand = ["latest_invoice", "default_payment_method", "customer.invoice_settings.default_payment_method"]
+        }, cancellationToken: ct);
 
     public Task<Price> ReadPriceAsync(string id, CancellationToken ct) => Client().V1.Prices.GetAsync(id, cancellationToken: ct);
 

@@ -20,12 +20,13 @@ public sealed class SubscriptionManagementService(ISubscriptionStore store, ISub
         if (await store.ActiveChangeAsync(serviceId, ct) is { } existing)
             return existing.State == PlanChangeState.Quoted && existing.TargetPlanId == targetId && existing.QuoteExpiresAt > clock.GetUtcNow()
                 ? new(true, "quoted", existing) : Fail("pending");
-        var target = (await store.ListPlansAsync(service.GameId, service.BillingPeriod, ct)).SingleOrDefault(x => x.Plan.Id == targetId);
-        var priceId = target?.StripePriceId ?? (target is null ? null : prices.Value.FindPriceId(target.Plan.Slug, service.BillingPeriod));
+        var target = (await store.ListPlansAsync(service.GameId, service.BillingPeriod, service.Currency, ct)).SingleOrDefault(x => x.Plan.Id == targetId);
+        var priceId = target?.StripePriceId ?? (target is null ? null : prices.Value.FindPriceId(target.Plan.Slug, service.BillingPeriod, service.Currency));
         if (target is null || target.Plan.Id == service.Plan.Id || string.IsNullOrEmpty(priceId)) return Fail("invalid");
         var subscription = await stripe.ReadSubscriptionAsync(service.SubscriptionId, ct);
+        if (UsesPix(subscription)) return Fail("payment-method");
         var item = ValidSubscription(service, subscription);
-        if (item is null || subscription.PendingUpdate is not null || subscription.ScheduleId is not null
+        if (item is null || subscription.Currency != service.Currency || subscription.PendingUpdate is not null || subscription.ScheduleId is not null
             || subscription.CancelAtPeriodEnd || subscription.PauseCollection is not null) return Fail("pending");
         var latest = subscription.LatestInvoiceId is { } latestId ? await stripe.ReadInvoiceAsync(latestId, ct) : null;
         if (latest is null || !Paid(latest, service, subscription.Currency)) return Fail("unpaid");
@@ -79,6 +80,8 @@ public sealed class SubscriptionManagementService(ISubscriptionStore store, ISub
             if (change.EffectiveAt <= clock.GetUtcNow().AddMinutes(1)) { Finish(change, PlanChangeState.Cancelled, "renewing"); return Fail("renewing"); }
             var service = (await OwnedAsync(owner, change.HostingServiceId, ct))!;
             var subscription = await stripe.ReadSubscriptionAsync(change.StripeSubscriptionId, ct);
+            if (UsesPix(subscription))
+            { Finish(change, PlanChangeState.Cancelled, "payment-method"); return Fail("payment-method"); }
             var item = ValidSubscription(service, subscription);
             if (!Unchanged(change, subscription, item) || subscription.PendingUpdate is not null || subscription.ScheduleId is not null)
             { Finish(change, PlanChangeState.Cancelled, "stale"); return Fail("stale"); }
@@ -246,6 +249,10 @@ public sealed class SubscriptionManagementService(ISubscriptionStore store, ISub
     private static SubscriptionItem? ValidSubscription(ManagedService service, Subscription sub) =>
         sub.Id == service.SubscriptionId && sub.CustomerId == service.CustomerId && sub.Status == "active"
         && sub.CollectionMethod == "charge_automatically" && sub.Items?.Data is [var item] && item.Quantity == 1 ? item : null;
+    // The existing pending-update/proration workflow cannot change a Pix mandate. Keep these
+    // subscriptions intact and require a reviewed mandate change instead of attempting a charge.
+    private static bool UsesPix(Subscription sub) => sub.DefaultPaymentMethod?.Type == "pix"
+        || (sub.DefaultPaymentMethodId is null && sub.Customer?.InvoiceSettings?.DefaultPaymentMethod?.Type == "pix");
     private static bool Unchanged(SubscriptionPlanChange c, Subscription sub, SubscriptionItem? item) =>
         item is not null && item.Id == c.SubscriptionItemId && item.Price.Id == c.SourcePriceId
         && item.CurrentPeriodEnd == c.EffectiveAt.UtcDateTime && sub.LatestInvoiceId == c.BaselineInvoiceId && !sub.CancelAtPeriodEnd;

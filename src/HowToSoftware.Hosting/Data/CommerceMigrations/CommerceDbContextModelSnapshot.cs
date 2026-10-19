@@ -1020,7 +1020,7 @@ namespace HowToSoftware.Hosting.Data.CommerceMigrations
                         .IsUnique()
                         .HasFilter("[stripe_price_id] IS NOT NULL");
 
-                    b.HasIndex("PlanId", "BillingPeriod")
+                    b.HasIndex("PlanId", "BillingPeriod", "Currency")
                         .IsUnique();
 
                     b.ToTable("plan_billing_prices", t =>

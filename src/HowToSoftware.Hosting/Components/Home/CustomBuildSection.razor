@@ -18,6 +18,7 @@
 @inject ICustomBuildService Builds
 @inject IStringLocalizer<HomeText> Text
 @inject IOptions<SiteOptions> Site
+@inject StorefrontCurrencyService Currencies
 
 <section class="build" id="custom-build" aria-labelledby="build-heading">
     <div class="hts-container hts-container--wide build-inner">
@@ -127,7 +128,7 @@
                         <p class="quote-label">@Text["CustomBuild.EstimateLabel"]</p>
 
                         <p class="quote-total">
-                            <span class="quote-symbol">@estimate.CurrencySymbol</span>@Money(estimate.MonthlyTotal)
+                            <span class="quote-symbol">@Currencies.Symbol(Currency)</span>@Money(estimate.MonthlyTotal)
                             <span class="quote-unit">@Text["CustomBuild.PerMonth"]</span>
                         </p>
 
@@ -159,7 +160,7 @@
                                 <li>
                                     <span class="period-name">@Text[$"Billing.{period}"]</span>
                                     <span class="period-save">-@quote.DiscountPercent%</span>
-                                    <span class="period-total">@estimate.CurrencySymbol@Money(quote.FinalAmount)</span>
+                                    <span class="period-total">@Currencies.FormatCatalogAmount(quote.FinalAmount, Currency)</span>
                                 </li>
                             }
                         </ul>
@@ -171,7 +172,7 @@
                                       largest.Name,
                                       largest.MemoryGb,
                                       largest.CpuPercent,
-                                      $"{estimate.CurrencySymbol}{Money(largest.PriceMonthly!.Value)}"]
+                                      Currencies.FormatCatalogAmount(largest.PriceMonthly!.Value, Currency)]
                             </p>
                         }
 
@@ -206,6 +207,11 @@
 
 @code {
     private static readonly CultureInfo Money2 = CultureInfo.InvariantCulture;
+
+    // Pass the SSR-resolved preference across the interactive boundary; HttpContext is not
+    // a reliable source of request headers after the circuit is established.
+    [Parameter]
+    public string Currency { get; set; } = "usd";
 
     private CustomBuildBounds? _bounds;
     private CustomBuildRequest _request = new(0, 0, 0, null, null);
@@ -278,7 +284,7 @@
             ? value
             : fallback;
 
-    private static string Money(decimal value) => value.ToString("0.00", Money2);
+    private string Money(decimal value) => Currencies.FormatCatalogNumber(value, Currency);
 
     /// <summary>
     /// The request as a mail draft. Everything is escaped, and the body carries the same figures
@@ -304,12 +310,12 @@
         {
             lines.Add(
                 $"{Text["CustomBuild.EstimateLabel"]}: " +
-                $"{priced.CurrencySymbol}{Money(priced.MonthlyTotal)} {Text["CustomBuild.PerMonth"]}");
+                $"{Currencies.FormatCatalogAmount(priced.MonthlyTotal, Currency)} {Text["CustomBuild.PerMonth"]} ({Currency.ToUpperInvariant()})");
 
             foreach (var period in BillingPolicy.Periods.Where(p => p != BillingPeriod.Monthly))
             {
                 var quote = BillingPolicy.Quote(priced.MonthlyTotal, period);
-                lines.Add($"{Text[$"Billing.{period}"].Value}: {priced.CurrencySymbol}{Money(quote.FinalAmount)} (-{quote.DiscountPercent}%)");
+                lines.Add($"{Text[$"Billing.{period}"].Value}: {Currencies.FormatCatalogAmount(quote.FinalAmount, Currency)} (-{quote.DiscountPercent}%)");
             }
         }
 

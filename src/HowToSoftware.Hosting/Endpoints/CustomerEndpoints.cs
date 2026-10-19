@@ -94,7 +94,7 @@ public static class CustomerEndpoints
             var ok = await management.CancelScheduledAsync(owner, input.ChangeId, context.RequestAborted);
             return Results.LocalRedirect("/account?tab=plans&notice=" + (ok ? "success" : "failed"));
         });
-    private static string SafeCode(string code) => code == "invalid" ? "selection" : code is "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" ? code : "failed";
+    private static string SafeCode(string code) => code == "invalid" ? "selection" : code is "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "payment-method" ? code : "failed";
 }
 public sealed class CustomerAccessForm { public string? Email { get; set; } }
 public sealed class CustomerConfirmationForm { public string? Token { get; set; } }

@@ -7,6 +7,7 @@ using HowToSoftware.Hosting.Models.Orders;
 using HowToSoftware.Hosting.Services.Orders;
 using HowToSoftware.Hosting.Services.Trials;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace HowToSoftware.Hosting.Services.Payments;
 
@@ -32,7 +33,8 @@ public sealed record CheckoutRequest(
     string? Locale,
     string? PromoCode,
     string? TrialAccessToken = null,
-    bool IsTrialUpgrade = false);
+    bool IsTrialUpgrade = false,
+    string? Currency = null);
 
 /// <summary>How an attempt to start Checkout ended.</summary>
 public enum CheckoutOutcome
@@ -175,9 +177,17 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
             return new CheckoutStart(CheckoutOutcome.NotConfigured, null, null);
         }
 
+        var pixSettings = _options.CurrentValue.PixSubscriptions;
+        if (pixSettings.Enabled && (!StripePixSubscriptionsOptions.IsEligibleAccountCountry(pixSettings.AccountCountry)
+            || pixSettings.AmountIncludesIof is not ("always" or "never")))
+        {
+            _logger.LogWarning("Checkout unavailable: Pix subscription eligibility and IOF policy require valid configuration.");
+            return new CheckoutStart(CheckoutOutcome.NotConfigured, null, null);
+        }
+
         // The server prices the order. Whatever the browser thought the plan cost is not an
         // input to anything below this line.
-        if (_pricing.Price(request.GameSlug, request.PlanSlug, request.Period) is not { } priced)
+        if (_pricing.Price(request.GameSlug, request.PlanSlug, request.Period, request.Currency) is not { } priced)
         {
             _logger.LogWarning(
                 "Checkout rejected: {Game}/{Plan}/{Period} does not resolve to a priced plan.",
@@ -195,7 +205,7 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
                 priced.Game.Slug,
                 priced.Plan.Slug,
                 priced.Quote,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken, priced.CurrencyCode).ConfigureAwait(false);
 
             if (promotion is null)
             {
@@ -566,7 +576,7 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
 
         var lineItem = new SessionLineItemOptions { Quantity = 1 };
 
-        if (options.FindPriceId(order.PlanId, periodSlug) is { } priceId)
+        if (options.FindPriceId(order.PlanId, periodSlug, order.Currency) is { } priceId)
         {
             // A Price created in the dashboard for this plan and period. The webhook still
             // checks the paid amount against the server's figure, so a dashboard price that
@@ -605,11 +615,25 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
             : options.SuccessUrl;
 
         var cancelUrl = (string.IsNullOrWhiteSpace(options.CancelUrl)
-            ? $"{request.ReturnOrigin.TrimEnd('/')}{SiteRoutes.PaymentCancel}?game={{GAME_SLUG}}&plan={{PLAN_SLUG}}&period={{BILLING_PERIOD}}"
+            ? $"{request.ReturnOrigin.TrimEnd('/')}{SiteRoutes.PaymentCancel}?game={{GAME_SLUG}}&plan={{PLAN_SLUG}}&period={{BILLING_PERIOD}}&currency={{CURRENCY}}"
             : options.CancelUrl)
             .Replace("{GAME_SLUG}", Uri.EscapeDataString(order.GameId), StringComparison.Ordinal)
             .Replace("{PLAN_SLUG}", Uri.EscapeDataString(order.PlanId), StringComparison.Ordinal)
-            .Replace("{BILLING_PERIOD}", Uri.EscapeDataString(periodSlug), StringComparison.Ordinal);
+            .Replace("{BILLING_PERIOD}", Uri.EscapeDataString(periodSlug), StringComparison.Ordinal)
+            .Replace("{CURRENCY}", Uri.EscapeDataString(order.Currency), StringComparison.Ordinal);
+
+        // Older configured URLs have no currency placeholder. Always round-trip the actual
+        // order currency, replacing duplicate/stale query values without losing other fields.
+        var cancelBuilder = new UriBuilder(cancelUrl);
+        var cancelQuery = QueryHelpers.ParseQuery(cancelBuilder.Query);
+        cancelQuery["currency"] = order.Currency;
+        cancelBuilder.Query = QueryString.Create(cancelQuery).ToUriComponent();
+        cancelUrl = cancelBuilder.Uri.AbsoluteUri;
+
+        var pix = options.PixSubscriptions;
+        var allowPix = pix.Enabled && order.Currency == "brl"
+            && StripePixSubscriptionsOptions.IsEligibleAccountCountry(pix.AccountCountry)
+            && pix.AmountIncludesIof is "always" or "never";
 
         return new SessionCreateOptions
         {
@@ -622,6 +646,29 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
             ClientReferenceId = order.Id.ToString("D"),
             Metadata = metadata,
             SubscriptionData = new SessionSubscriptionDataOptions { Metadata = metadata },
+            // Leave other methods dynamic; never accidentally offer unsupported Pix recurrence.
+            ExcludedPaymentMethodTypes = allowPix ? null : ["pix"],
+            PaymentMethodOptions = allowPix ? new SessionPaymentMethodOptionsOptions
+            {
+                Pix = new SessionPaymentMethodOptionsPixOptions
+                {
+                    AmountIncludesIof = pix.AmountIncludesIof,
+                    MandateOptions = new SessionPaymentMethodOptionsPixMandateOptionsOptions
+                    {
+                        Amount = order.FinalAmountMinorUnits(),
+                        AmountType = "maximum",
+                        AmountIncludesIof = pix.AmountIncludesIof,
+                        Currency = "brl",
+                        PaymentSchedule = order.BillingPeriod switch
+                        {
+                            BillingPeriod.Monthly => "monthly",
+                            BillingPeriod.Quarterly => "quarterly",
+                            BillingPeriod.Annual => "yearly",
+                            _ => throw new InvalidOperationException("Unsupported Pix billing period.")
+                        }
+                    }
+                }
+            } : null,
             Locale = ToStripeLocale(request.Locale)
         };
     }

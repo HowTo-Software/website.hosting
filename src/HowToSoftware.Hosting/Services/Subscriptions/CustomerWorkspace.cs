@@ -80,7 +80,7 @@ public sealed class CustomerWorkspace(ISubscriptionStore store, ISubscriptionGat
                 logger.LogWarning("Customer billing data temporarily unavailable ({FailureClass}).", e.GetType().Name);
             }
             services.Add(new(service, status, renewal, change,
-                tab == "plans" ? await store.ListPlansAsync(service.GameId, service.BillingPeriod, ct) : [], paymentUrl));
+                tab == "plans" ? await store.ListPlansAsync(service.GameId, service.BillingPeriod, service.Currency, ct) : [], paymentUrl));
         }
         await using var db = await factory.CreateDbContextAsync(ct);
         var tickets = await db.CustomerSupport.AsNoTracking().Where(x => x.NormalizedEmail == owner)

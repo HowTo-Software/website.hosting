@@ -7,6 +7,7 @@
 @using System.Globalization
 @inject IPlanCatalogService Catalog
 @inject IStringLocalizer<CheckoutText> Text
+@inject StorefrontCurrencyService Currencies
 
 <section class="picker" id="plans" aria-labelledby="picker-heading" data-motion="scene" data-scene>
     <div class="hts-container hts-container--wide">
@@ -132,15 +133,15 @@
 
                             <div class="plan-price" data-period="@option.Slug">
                                 <p class="price-figure">
-                                    <span class="price-symbol">@Catalog.CurrencySymbol</span><span class="price-amount hts-mono">@Money(quote.FinalAmount)</span>
+                                    <span class="price-symbol">@Currencies.Symbol(Currency)</span><span class="price-amount hts-mono">@Currencies.FormatCatalogNumber(quote.FinalAmount, Currency)</span>
                                     <span class="price-unit">@UnitFor(option)</span>
                                 </p>
 
                                 @if (quote.IsDiscounted)
                                 {
                                     <p class="price-line hts-mono">
-                                        <span class="price-was">@Catalog.CurrencySymbol@Money(quote.BaseAmount)</span>
-                                        <span class="price-equivalent">@Text["Picker.Equivalent", $"{Catalog.CurrencySymbol}{Money(quote.EffectiveMonthly)}"]</span>
+                                        <span class="price-was">@Currencies.FormatCatalogAmount(quote.BaseAmount, Currency)</span>
+                                        <span class="price-equivalent">@Text["Picker.Equivalent", Currencies.FormatAmount(Currencies.ConvertAmount(quote.FinalAmount, Currency) / quote.Months, Currency)]</span>
                                     </p>
                                 }
                                 else
@@ -148,7 +149,7 @@
                                     <p class="price-line hts-mono">@Text["Picker.MonthlyNote"]</p>
                                 }
 
-                                <CtaButton Href="@SiteRoutes.Review(Game.Slug, plan.Slug, option.Period)"
+                                <CtaButton Href="@SiteRoutes.Review(Game.Slug, plan.Slug, option.Period, Currency)"
                                            Variant="@(plan.IsRecommended ? CtaVariant.Primary : CtaVariant.Secondary)"
                                            TrailingIcon="IconName.ArrowRight"
                                            CssClass="plan-cta">
@@ -168,11 +169,16 @@
         </ul>
 
         <p class="picker-note">@Text["Picker.ReviewNote"]</p>
+        @if (Currency == "brl")
+        {
+            <p class="picker-note">@Text["Currency.BrlNote", Currencies.FormatCatalogAmount(1m, "brl")]</p>
+        }
     </div>
 </section>
 
 @code {
-    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string Currency { get; set; } = "usd";
 
     /// <summary>The game the plans are sold for; its slug goes into every review link.</summary>
     [Parameter, EditorRequired]
@@ -189,8 +195,6 @@
     private HostingPlan? Smallest => Plans.Count == 0 ? null : Plans[0];
 
     private HostingPlan? Largest => Plans.Count == 0 ? null : Plans[^1];
-
-    private static string Money(decimal value) => value.ToString("0.00", Invariant);
 
     private string UnitFor(BillingOption option) => option.Period switch
     {

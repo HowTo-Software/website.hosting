@@ -122,7 +122,7 @@ public sealed class CommerceDbContext(DbContextOptions<CommerceDbContext> option
             entity.Property(x => x.Currency).HasMaxLength(3);
             entity.Property(x => x.StripeProductId).HasMaxLength(128);
             entity.Property(x => x.StripePriceId).HasMaxLength(128);
-            entity.HasIndex(x => new { x.PlanId, x.BillingPeriod }).IsUnique();
+            entity.HasIndex(x => new { x.PlanId, x.BillingPeriod, x.Currency }).IsUnique();
             entity.HasIndex(x => x.StripePriceId).IsUnique().HasFilter("[stripe_price_id] IS NOT NULL");
             entity.HasOne<CommerceHostingPlan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Cascade);
         });

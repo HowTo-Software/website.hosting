@@ -146,6 +146,8 @@ public sealed class CustomBuildLimits
 /// </remarks>
 public sealed class HostingPlanPricingOptions
 {
+    /// <summary>Server-owned regional prices; the catalogue remains denominated in USD.</summary>
+    public RegionalPricingOptions RegionalPricing { get; set; } = new();
     /// <summary>Configuration section name.</summary>
     public const string SectionName = "HostingPlans";
 
@@ -246,6 +248,13 @@ public sealed class HostingPlanPricingOptions
             ? CharmPricing ? ToCharmPrice(computed) : computed
             : null;
     }
+}
+
+/// <summary>Commercial conversion policy, never supplied by the browser.</summary>
+public sealed class RegionalPricingOptions
+{
+    /// <summary>Invariant BRL charged for one catalogue USD.</summary>
+    public string BrlPerUsd { get; set; } = "6.50";
 }
 
 // =============================================================

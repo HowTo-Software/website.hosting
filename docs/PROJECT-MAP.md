@@ -61,6 +61,11 @@ Table paths are relative to `src/HowToSoftware.Hosting` unless indicated otherwi
 
 ## Text families
 
+Regional prices and charge currency: `Services/StorefrontCurrencyService.cs`,
+`Services/Payments/OrderPricingService.cs`, `Infrastructure/Stripe/StripeOptions.cs` and
+`Components/Pages/PlanReview.razor`. See [regional pricing](REGIONAL-PRICING.md) for
+browser detection, USD/BRL mappings, the index migration and dormant Pix configuration.
+
 CommonText, HomeText, LoginText, HardwareText, CheckoutText, and StorefrontText have neutral EN resources and PT-BR counterparts. New visible feature copy belongs in the appropriate family and must preserve formatting placeholders in both languages.
 
 ## References and evidence

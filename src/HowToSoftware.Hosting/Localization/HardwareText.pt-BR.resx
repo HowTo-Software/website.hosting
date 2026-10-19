@@ -262,7 +262,7 @@
     <value>Uplink 1 GbE</value>
   </data>
   <data name="Node.PlatformValue" xml:space="preserve">
-    <value>Ubuntu 24.04 LTS · bare metal</value>
+    <value>Ubuntu 26.04 LTS · bare metal</value>
   </data>
   <data name="Node.RegionValue" xml:space="preserve">
     <value>US Central</value>

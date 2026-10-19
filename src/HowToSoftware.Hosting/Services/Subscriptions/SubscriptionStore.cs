@@ -27,14 +27,18 @@ public sealed class SubscriptionStore(IDbContextFactory<CommerceDbContext> facto
             && (email == null || order.CustomerEmail.Trim().ToLower() == email)
         select new ManagedService(service.Id, order.Id, order.GameId, order.GameSlug, plan, order.BillingPeriod,
             service.StripeSubscriptionId!, order.StripeCustomerId!, order.CustomerEmail!, service.PterodactylServerId,
-            service.PterodactylServerUuid);
+            service.PterodactylServerUuid, order.Currency);
 
     public async Task<IReadOnlyList<ManagedPlan>> ListPlansAsync(Guid gameId, string period, CancellationToken ct)
+        => await ListPlansAsync(gameId, period, "usd", ct);
+
+    public async Task<IReadOnlyList<ManagedPlan>> ListPlansAsync(Guid gameId, string period, string currency, CancellationToken ct)
     {
+        if (!StorefrontCurrencyService.TryNormalize(currency, out var selected)) return [];
         await using var db = await factory.CreateDbContextAsync(ct);
         return await (from plan in db.HostingPlans.AsNoTracking()
                       join price in db.PlanBillingPrices.AsNoTracking() on plan.Id equals price.PlanId
-                      where plan.GameId == gameId && plan.Active && price.Active && price.BillingPeriod == period
+                      where plan.GameId == gameId && plan.Active && price.Active && price.BillingPeriod == period && price.Currency.ToLower() == selected
                       orderby plan.SortOrder
                       select new ManagedPlan(plan, price.StripePriceId)).ToListAsync(ct);
     }

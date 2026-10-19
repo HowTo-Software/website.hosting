@@ -19,6 +19,11 @@ public interface IPromotionService
         BillingQuote quote,
         CancellationToken cancellationToken = default);
 
+    Task<PromotionResult?> ValidateAsync(string? code, string gameSlug, string planSlug, BillingQuote quote,
+        CancellationToken cancellationToken, string currency) =>
+        currency == "usd" ? ValidateAsync(code, gameSlug, planSlug, quote, cancellationToken)
+            : Task.FromResult<PromotionResult?>(null);
+
     Task RedeemAsync(
         Guid promotionId,
         Guid orderId,
@@ -54,14 +59,17 @@ public sealed class PromotionService(
     IDbContextFactory<CommerceDbContext> factory)
     : IPromotionService
 {
+    public Task<PromotionResult?> ValidateAsync(string? code, string gameSlug, string planSlug, BillingQuote quote,
+        CancellationToken cancellationToken = default) => ValidateAsync(code, gameSlug, planSlug, quote, cancellationToken, "usd");
+
     public async Task<PromotionResult?> ValidateAsync(
         string? code,
         string gameSlug,
         string planSlug,
         BillingQuote quote,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken, string currency)
     {
-        if (string.IsNullOrWhiteSpace(code))
+        if (string.IsNullOrWhiteSpace(code) || !StorefrontCurrencyService.TryNormalize(currency, out var selectedCurrency))
         {
             return null;
         }
@@ -127,11 +135,14 @@ public sealed class PromotionService(
             return null;
         }
 
-        if (!string.IsNullOrWhiteSpace(promotion.Currency) &&
+        if ((!string.IsNullOrWhiteSpace(promotion.Currency) &&
             !string.Equals(
                 promotion.Currency,
-                "usd",
+                selectedCurrency,
                 StringComparison.OrdinalIgnoreCase))
+            // Historic unspecified fixed amounts/minimums were USD cents, not BRL cents.
+            || (string.IsNullOrWhiteSpace(promotion.Currency) && selectedCurrency != "usd"
+                && (promotion.DiscountType == "fixed" || promotion.MinimumAmountCents is not null)))
         {
             return null;
         }

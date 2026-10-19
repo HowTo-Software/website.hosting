@@ -809,4 +809,10 @@ Questions: {1}</value>
   <data name="Review.TrialUpgradePending" xml:space="preserve">
     <value>A checkout is already in progress for this trial. Finish it or wait for it to expire before trying again.</value>
   </data>
+  <data name="Currency.Label" xml:space="preserve"><value>Billing currency</value></data>
+  <data name="Currency.usd" xml:space="preserve"><value>USD · US dollar</value></data>
+  <data name="Currency.brl" xml:space="preserve"><value>BRL · Brazilian real</value></data>
+  <data name="Currency.Charge" xml:space="preserve"><value>This plan is priced at {0}. Stripe will charge in {1}.</value></data>
+  <data name="Currency.BrlNote" xml:space="preserve"><value>BRL prices use the fixed exchange rate of US$ 1 = {0}.</value></data>
+  <data name="Review.BasePeriod" xml:space="preserve"><value>List price for {0} months, converted to BRL</value></data>
 </root>

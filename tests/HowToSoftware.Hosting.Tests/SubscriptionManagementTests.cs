@@ -13,6 +13,34 @@ namespace HowToSoftware.Hosting.Tests;
 /// <summary>Hermetic financial state machine checks. Never uses Stripe, SMTP or a panel.</summary>
 public sealed class SubscriptionManagementTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PixMandatesNeverUseTheCardOnlyPlanMutationFlow(bool inheritedFromCustomer)
+    {
+        var h = new Harness();
+        var method = new PaymentMethod { Id = "pm_test_pix", Type = "pix" };
+        if (inheritedFromCustomer)
+            h.Stripe.Sub.Customer = new Customer { Id = "cus_test", InvoiceSettings = new() { DefaultPaymentMethod = method } };
+        else h.Stripe.Sub.DefaultPaymentMethod = method;
+        Assert.Equal("payment-method", (await h.Preview()).Code);
+        Assert.Empty(h.Store.Changes);
+        Assert.Equal(0, h.Stripe.Upgrades);
+        Assert.Equal(0, h.Resources.Applies);
+    }
+
+    [Fact]
+    public async Task SwitchingToPixAfterAQuoteCancelsItWithoutCharging()
+    {
+        var h = new Harness();
+        var quoted = (await h.Preview()).Change!;
+        h.Stripe.Sub.DefaultPaymentMethod = new PaymentMethod { Id = "pm_test_pix", Type = "pix" };
+        Assert.Equal("payment-method", (await h.Service.ConfirmAsync(Harness.Owner, quoted.Id, default)).Code);
+        Assert.Equal(PlanChangeState.Cancelled, h.Store.Changes[quoted.Id].State);
+        Assert.Equal(0, h.Stripe.Upgrades);
+        Assert.Equal(0, h.Resources.Applies);
+    }
+
     [Fact]
     public async Task PreviewUsesExactNativeAmountsAndFrozenTimestampNotLocalProration()
     {

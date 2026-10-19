@@ -186,6 +186,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 // culture; the data behind them is still compiled-in and allocation-cheap.
 builder.Services.AddScoped<IMarketingContentService, StaticMarketingContentService>();
 builder.Services.AddScoped<IPlanCatalogService, StaticPlanCatalogService>();
+builder.Services.AddScoped<StorefrontCurrencyService>();
 builder.Services.AddScoped<IGameCatalogService, StaticGameCatalogService>();
 builder.Services.AddScoped<ICustomBuildService, RateCardBuildService>();
 // The purchase flow. The browser sends a game, a plan and a period; everything with a

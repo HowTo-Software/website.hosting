@@ -161,7 +161,7 @@ public sealed class PurchaseFlowTests : IDisposable
         Assert.Equal(options.Metadata, options.SubscriptionData!.Metadata);
 
         Assert.Equal("https://hts.example/payment/success?session_id={CHECKOUT_SESSION_ID}", options.SuccessUrl);
-        Assert.Equal("https://hts.example/payment/cancel?game=project-zomboid&plan=zomboid-4gb&period=quarterly", options.CancelUrl);
+        Assert.Equal("https://hts.example/payment/cancel?game=project-zomboid&plan=zomboid-4gb&period=quarterly&currency=usd", options.CancelUrl);
         Assert.Equal("pt-BR", options.Locale);
     }
 
@@ -197,6 +197,99 @@ public sealed class PurchaseFlowTests : IDisposable
         Assert.Null(line.PriceData);
     }
 
+    [Theory]
+    [InlineData(BillingPeriod.Monthly, 5194)]
+    [InlineData(BillingPeriod.Quarterly, 14801)]
+    [InlineData(BillingPeriod.Annual, 56089)]
+    public async Task BrlCheckoutPersistsAndChargesTheConvertedServerQuote(BillingPeriod period, long amount)
+    {
+        _stripeOptions.PriceIds[$"zomboid-4gb:{BillingPolicy.Slug(period)}"] = "price_usd_must_not_be_used";
+        var result = await Checkout().CreateCheckoutSessionAsync(Request(period: period) with { Currency = "brl" });
+        Assert.Equal(CheckoutOutcome.Redirect, result.Outcome);
+        var order = (await _orders.FindAsync(result.OrderId!.Value))!;
+        Assert.Equal("brl", order.Currency);
+        Assert.Equal(amount, order.FinalAmountMinorUnits());
+        var line = Assert.Single(_stripe.LastOptions!.LineItems);
+        Assert.Null(line.Price);
+        Assert.Equal("brl", line.PriceData!.Currency);
+        Assert.Equal(amount, line.PriceData.UnitAmount);
+        Assert.Contains("currency=brl", _stripe.LastOptions.CancelUrl);
+        await Checkout().HandleCompletedCheckoutAsync(Completed(order, amount: amount, currency: "brl"));
+        Assert.Equal(OrderStatus.Paid, (await _orders.FindAsync(order.Id))!.Status);
+    }
+
+    [Fact]
+    public async Task WrongCurrencyWebhookCannotFulfilBrlOrderEvenAtCorrectAmount()
+    {
+        var result = await Checkout().CreateCheckoutSessionAsync(Request() with { Currency = "brl" });
+        var order = (await _orders.FindAsync(result.OrderId!.Value))!;
+        await Checkout().HandleCompletedCheckoutAsync(Completed(order, amount: order.FinalAmountMinorUnits(), currency: "usd"));
+        Assert.Equal(OrderStatus.Failed, (await _orders.FindAsync(order.Id))!.Status);
+    }
+
+    [Fact]
+    public async Task UnsupportedCurrencyIsRejectedBeforeOrderOrStripeSideEffects()
+    {
+        var result = await Checkout().CreateCheckoutSessionAsync(Request() with { Currency = "eur" });
+        Assert.Equal(CheckoutOutcome.Rejected, result.Outcome);
+        Assert.Null(result.OrderId);
+        Assert.Null(_stripe.LastOptions);
+    }
+
+    [Theory]
+    [InlineData(false, "brl")]
+    [InlineData(false, "usd")]
+    [InlineData(true, "usd")]
+    public async Task PixCannotLeakIntoDisabledOrUsdSubscriptions(bool enabled, string currency)
+    {
+        _stripeOptions.PixSubscriptions = new() { Enabled = enabled, AccountCountry = "US", AmountIncludesIof = "always" };
+        var result = await Checkout().CreateCheckoutSessionAsync(Request() with { Currency = currency });
+        Assert.True(result.IsRedirect);
+        Assert.Equal(new[] { "pix" }, _stripe.LastOptions!.ExcludedPaymentMethodTypes);
+        Assert.Null(_stripe.LastOptions.AllowedPaymentMethodTypes); // Other payment methods remain dynamic.
+        Assert.Null(_stripe.LastOptions.PaymentMethodOptions);
+    }
+
+    [Theory]
+    [InlineData(BillingPeriod.Monthly, "monthly", 5194, "always")]
+    [InlineData(BillingPeriod.Quarterly, "quarterly", 14801, "never")]
+    [InlineData(BillingPeriod.Annual, "yearly", 56089, "always")]
+    public async Task ExplicitEligiblePixUsesExactCurrencyAmountAndMandateCadence(
+        BillingPeriod period, string cadence, long amount, string iof)
+    {
+        _stripeOptions.PixSubscriptions = new() { Enabled = true, AccountCountry = "US", AmountIncludesIof = iof };
+        var result = await Checkout().CreateCheckoutSessionAsync(Request(period: period) with { Currency = "brl" });
+        Assert.True(result.IsRedirect);
+        var options = _stripe.LastOptions!;
+        Assert.Null(options.ExcludedPaymentMethodTypes);
+        Assert.Null(options.AllowedPaymentMethodTypes);
+        var pix = options.PaymentMethodOptions!.Pix;
+        Assert.Equal(iof, pix.AmountIncludesIof);
+        Assert.Equal(iof, pix.MandateOptions.AmountIncludesIof);
+        Assert.Equal(amount, pix.MandateOptions.Amount);
+        Assert.Equal("maximum", pix.MandateOptions.AmountType);
+        Assert.Equal("brl", pix.MandateOptions.Currency);
+        Assert.Equal(cadence, pix.MandateOptions.PaymentSchedule);
+        Assert.Equal(amount, Assert.Single(options.LineItems).PriceData!.UnitAmount);
+        using var serialized = System.Text.Json.JsonDocument.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(options));
+        var serializedPix = serialized.RootElement.GetProperty("payment_method_options").GetProperty("pix");
+        Assert.Equal(iof, serializedPix.GetProperty("amount_includes_iof").GetString());
+        Assert.Equal(amount, serializedPix.GetProperty("mandate_options").GetProperty("amount").GetInt64());
+        var order = (await _orders.FindAsync(result.OrderId!.Value))!;
+        await Checkout().HandleCompletedCheckoutAsync(Completed(order, amount, "brl", paymentStatus: "unpaid"));
+        Assert.Equal(OrderStatus.Pending, (await _orders.FindAsync(order.Id))!.Status); // QR/enrollment alone is not payment.
+    }
+
+    [Fact]
+    public async Task InvalidPixConfigurationCannotReserveOrCreateAnOrderOrCallStripe()
+    {
+        _stripeOptions.PixSubscriptions = new() { Enabled = true, AccountCountry = "BR", AmountIncludesIof = "always" };
+        var result = await Checkout().CreateCheckoutSessionAsync(Request() with { Currency = "brl" });
+        Assert.Equal(CheckoutOutcome.NotConfigured, result.Outcome);
+        Assert.Null(result.OrderId);
+        Assert.Null(_stripe.LastOptions);
+    }
+
     [Fact]
     public async Task ConfiguredReturnUrlsWin_AndPublicSlugsAreSubstituted()
     {
@@ -206,7 +299,22 @@ public sealed class PurchaseFlowTests : IDisposable
         var result = await Checkout().CreateCheckoutSessionAsync(Request());
 
         Assert.Equal(_stripeOptions.SuccessUrl, _stripe.LastOptions!.SuccessUrl);
-        Assert.Equal("https://howtoosoftware.com/payment/cancel?game=project-zomboid&plan=zomboid-4gb&period=quarterly", _stripe.LastOptions.CancelUrl);
+        Assert.Equal("https://howtoosoftware.com/payment/cancel?game=project-zomboid&plan=zomboid-4gb&period=quarterly&currency=usd", _stripe.LastOptions.CancelUrl);
+    }
+
+    [Theory]
+    [InlineData("https://hts.example/payment/cancel?game={GAME_SLUG}&plan={PLAN_SLUG}&period={BILLING_PERIOD}&source=legacy#retry")]
+    [InlineData("https://hts.example/payment/cancel?game={GAME_SLUG}&plan={PLAN_SLUG}&period={BILLING_PERIOD}&source=legacy&currency=usd&currency=eur#retry")]
+    public async Task CustomCancelUrlRetainsActualBrlCurrencyWithoutDuplicateQueryValues(string url)
+    {
+        _stripeOptions.CancelUrl = url;
+        await Checkout().CreateCheckoutSessionAsync(Request() with { Currency = "brl", Locale = "en-US" });
+        var target = new Uri(_stripe.LastOptions!.CancelUrl);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(target.Query);
+        Assert.Equal("brl", Assert.Single(query["currency"]));
+        Assert.Equal("legacy", query["source"]);
+        Assert.Equal("quarterly", query["period"]);
+        Assert.Equal("#retry", target.Fragment);
     }
 
     [Fact]

@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 @inject IOptions<SiteOptions> Site
 @inject IStringLocalizer<CommonText> Text
+@inject StorefrontCurrencyService Currencies
 
+<CascadingValue Name="StorefrontCurrency" Value="@Currency">
 <a class="hts-skip-link" href="#main">@Text["Nav.SkipToContent"]</a>
 
 <div class="site-shell">
@@ -13,7 +15,7 @@
         the DOM, because a patched element never replays its animation on its own. Without
         scripting the animation simply runs once, on load, and nothing else changes.
     *@
-    <main id="main" tabindex="-1" data-page-enter>
+    <main id="main" tabindex="-1" data-page-enter data-currency="@Currency">
         @Body
     </main>
 
@@ -25,6 +27,14 @@
     <a href="." class="reload">@Text["Blazor.Reload"]</a>
     <span class="dismiss">&#128473;</span>
 </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string Currency => Currencies.ResolveBrowserCurrency(HttpContext?.Request.Headers.AcceptLanguage.ToArray());
+}
 
 @*
     © 2026 Henry Lawrence Cahill (HowToSoftware). All rights reserved.

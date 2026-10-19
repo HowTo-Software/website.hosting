@@ -14,7 +14,8 @@ public sealed class CommerceSeedService(
     IGameCatalogService games,
     IOptions<HostingPlanPricingOptions> pricing,
     IOptionsMonitor<PterodactylOptions> pterodactyl,
-    IHostEnvironment environment)
+    IHostEnvironment environment,
+    StorefrontCurrencyService currencies)
 {
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -114,13 +115,15 @@ public sealed class CommerceSeedService(
             }
 
             foreach (var period in BillingPolicy.Periods)
+            foreach (var currency in new[] { "usd", "brl" })
             {
                 var periodSlug = BillingPolicy.Slug(period);
+                var currencyCode = currency.ToUpperInvariant();
                 var billingPrice = await db.PlanBillingPrices.SingleOrDefaultAsync(
-                    x => x.PlanId == plan.Id && x.BillingPeriod == periodSlug,
+                    x => x.PlanId == plan.Id && x.BillingPeriod == periodSlug && x.Currency == currencyCode,
                     cancellationToken).ConfigureAwait(false);
 
-                var quote = BillingPolicy.Quote(sourcePlan.PriceMonthly!.Value, period);
+                var quote = currencies.ConvertQuote(BillingPolicy.Quote(sourcePlan.PriceMonthly!.Value, period), currency);
                 if (billingPrice is null)
                 {
                     billingPrice = new PlanBillingPrice
@@ -130,7 +133,7 @@ public sealed class CommerceSeedService(
                         BillingPeriod = periodSlug,
                         DiscountPercent = quote.DiscountPercent,
                         AmountCents = quote.FinalAmountMinor,
-                        Currency = pricing.Value.CurrencyCode.ToUpperInvariant(),
+                        Currency = currencyCode,
                         Active = true,
                         CreatedAt = now,
                         UpdatedAt = now
@@ -143,7 +146,7 @@ public sealed class CommerceSeedService(
                     // calculation. This also upgrades an earlier 15% annual seed to 10%.
                     billingPrice.DiscountPercent = quote.DiscountPercent;
                     billingPrice.AmountCents = quote.FinalAmountMinor;
-                    billingPrice.Currency = pricing.Value.CurrencyCode.ToUpperInvariant();
+                    billingPrice.Currency = currencyCode;
                     billingPrice.Active = true;
                     billingPrice.UpdatedAt = now;
                 }

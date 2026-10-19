@@ -11,8 +11,9 @@
 
 @using System.Globalization
 @inject IStringLocalizer<CheckoutText> Text
+@inject StorefrontCurrencyService Currencies
 
-<div class="summary @CssClass">
+<div class="summary @CssClass" data-currency="@CurrencyCode">
     <div class="summary-head">
         <span class="summary-lamp" aria-hidden="true"></span>
         <span class="summary-id hts-mono">@Plan.Slug</span>
@@ -78,27 +79,29 @@
                                 <span class="row-dim">
                                     @(Quote.Months == 1
                                         ? Text["Review.BaseLineMonthly"]
-                                        : Text["Review.BaseLine", $"{CurrencySymbol}{Money(Quote.MonthlyPrice)}", Quote.Months])
+                                        : CurrencyCode == "brl"
+                                            ? Text["Review.BasePeriod", Quote.Months]
+                                            : Text["Review.BaseLine", Currencies.FormatAmount(Quote.MonthlyPrice, CurrencyCode), Quote.Months])
                                 </span>
                             </th>
-                            <td class="hts-mono">@CurrencySymbol@Money(Quote.BaseAmount)</td>
+                            <td class="hts-mono">@Currencies.FormatAmount(Quote.BaseAmount, CurrencyCode)</td>
                         </tr>
                         @if (Quote.IsDiscounted)
                         {
                             <tr class="is-data">
                                 <th scope="row">@Text["Review.DiscountLine", Quote.DiscountPercent]</th>
-                                <td class="hts-mono">-@CurrencySymbol@Money(Quote.DiscountAmount)</td>
+                                <td class="hts-mono">-@Currencies.FormatAmount(Quote.DiscountAmount, CurrencyCode)</td>
                             </tr>
                         }
                         <tr class="price-total">
                             <th scope="row">@Text["Review.Total"]</th>
-                            <td class="hts-mono">@CurrencySymbol@Money(Quote.FinalAmount)</td>
+                            <td class="hts-mono">@Currencies.FormatAmount(Quote.FinalAmount, CurrencyCode)</td>
                         </tr>
                     </tbody>
                 </table>
                 @if (Quote.IsDiscounted)
                 {
-                    <p class="price-equivalent hts-mono">@Text["Picker.Equivalent", $"{CurrencySymbol}{Money(Quote.EffectiveMonthly)}"]</p>
+                    <p class="price-equivalent hts-mono">@Text["Picker.Equivalent", Currencies.FormatAmount(Quote.EffectiveMonthly, CurrencyCode)]</p>
                 }
             </dd>
         </div>
@@ -114,8 +117,6 @@
 </div>
 
 @code {
-    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
-
     /// <summary>The game.</summary>
     [Parameter, EditorRequired]
     public HostedGame Game { get; set; } = default!;
@@ -132,9 +133,9 @@
     [Parameter, EditorRequired]
     public string PeriodLabel { get; set; } = string.Empty;
 
-    /// <summary>Currency symbol to print.</summary>
+    /// <summary>The authoritative currency of this already-priced quote; never convert twice.</summary>
     [Parameter, EditorRequired]
-    public string CurrencySymbol { get; set; } = string.Empty;
+    public string CurrencyCode { get; set; } = "usd";
 
     /// <summary>Whether to print the plan's "suitable for" line under the figures.</summary>
     [Parameter]
@@ -144,7 +145,6 @@
     [Parameter]
     public string? CssClass { get; set; }
 
-    private static string Money(decimal value) => value.ToString("0.00", Invariant);
 }
 
 @*

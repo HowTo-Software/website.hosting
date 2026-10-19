@@ -19,6 +19,28 @@ namespace HowToSoftware.Hosting.Tests;
 public sealed class CustomerAreaPersistenceTests
 {
     [Fact]
+    public async Task SubscriptionPlanPriceMappingsAreIsolatedByCurrency()
+    {
+        await using var h = await DatabaseHarness.Create();
+        var service = await h.Seed();
+        await using (var db = h.Factory.CreateDbContext())
+        {
+            var plan = await db.HostingPlans.SingleAsync();
+            plan.Active = true;
+            db.PlanBillingPrices.AddRange(
+                new PlanBillingPrice { Id = Guid.NewGuid(), PlanId = plan.Id, BillingPeriod = "monthly",
+                    Currency = "usd", AmountCents = 799, Active = true, StripePriceId = "price_usd" },
+                new PlanBillingPrice { Id = Guid.NewGuid(), PlanId = plan.Id, BillingPeriod = "monthly",
+                    Currency = "BRL", AmountCents = 5194, Active = true, StripePriceId = "price_brl" });
+            await db.SaveChangesAsync();
+        }
+        var store = new SubscriptionStore(h.Factory);
+        Assert.Equal("price_usd", Assert.Single(await store.ListPlansAsync(service.GameId, "monthly", default)).StripePriceId);
+        Assert.Equal("price_brl", Assert.Single(await store.ListPlansAsync(service.GameId, "monthly", "brl", default)).StripePriceId);
+        Assert.Empty(await store.ListPlansAsync(service.GameId, "monthly", "eur", default));
+    }
+
+    [Fact]
     public async Task AccessPersistsOnlyHashesAndConsumesChallengeExactlyOnce()
     {
         await using var h = await DatabaseHarness.Create();

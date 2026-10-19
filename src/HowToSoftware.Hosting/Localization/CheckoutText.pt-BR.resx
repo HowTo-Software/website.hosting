@@ -809,4 +809,10 @@ Dúvidas: {1}</value>
   <data name="Review.TrialUpgradePending" xml:space="preserve">
     <value>Já existe um checkout em andamento para este teste. Conclua o pagamento ou aguarde a expiração antes de tentar novamente.</value>
   </data>
+  <data name="Currency.Label" xml:space="preserve"><value>Moeda da cobrança</value></data>
+  <data name="Currency.usd" xml:space="preserve"><value>USD · dólar americano</value></data>
+  <data name="Currency.brl" xml:space="preserve"><value>BRL · real brasileiro</value></data>
+  <data name="Currency.Charge" xml:space="preserve"><value>O preço deste plano é {0}. A Stripe cobrará em {1}.</value></data>
+  <data name="Currency.BrlNote" xml:space="preserve"><value>Os preços em BRL usam a cotação fixa de US$ 1 = {0}.</value></data>
+  <data name="Review.BasePeriod" xml:space="preserve"><value>Preço-base de {0} meses, convertido para BRL</value></data>
 </root>

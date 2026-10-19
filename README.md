@@ -43,6 +43,11 @@ Its additive commerce migration and feature flags must be configured before enab
 without replacing email access. The on-premises Active Directory identity boundary is prepared;
 its AD FS/LDAPS transport adapter remains explicitly pending. All external-provider flags default off.
 
+[Regional pricing](docs/REGIONAL-PRICING.md) adds actual USD/BRL checkout at the fixed rate
+of USD 1 = BRL 6.50, with a Brazilian-browser default and explicit currency review. Pix
+subscription support uses the confirmed US account and HTS-paid IOF policy; it remains disabled
+pending Stripe capability and staging validation.
+
 ## Run a local preview
 
 Requirements: **.NET 10** SDK and Git. There is no required npm, React, or Tailwind step.
