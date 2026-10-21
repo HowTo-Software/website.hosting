@@ -178,7 +178,7 @@ public sealed class ExternalIdentityPersistenceTests
         private ServiceProvider _services = null!;
         public Factory Factory = null!;
         public readonly FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
-        public ExternalIdentityOptions Options = new() { Discord = new() { Enabled = true, LoginEnabled = true } };
+        public readonly ExternalIdentityOptions Options = new() { Discord = new() { Enabled = true, LoginEnabled = true } };
         public ExternalIdentityService Service = null!;
         public CustomerAccessService Native = null!;
         public static async Task<Harness> Create()

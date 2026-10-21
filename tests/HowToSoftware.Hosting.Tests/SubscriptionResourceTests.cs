@@ -104,8 +104,8 @@ public sealed class SubscriptionResourceTests
     private sealed class Harness : HttpMessageHandler
     {
         private readonly HttpClient _http;
-        public ManagedService Service = new SubscriptionManagementTests.Harness().Managed;
-        public SubscriptionPlanChange Change = new() { MemoryMb = 8192, CpuPercent = 300, DiskMb = 25600, BackupLimit = 1, DatabaseLimit = 0, AllocationLimit = 1, Direction = PlanChangeDirection.Upgrade };
+        public readonly ManagedService Service = new SubscriptionManagementTests.Harness().Managed;
+        public readonly SubscriptionPlanChange Change = new() { MemoryMb = 8192, CpuPercent = 300, DiskMb = 25600, BackupLimit = 1, DatabaseLimit = 0, AllocationLimit = 1, Direction = PlanChangeDirection.Upgrade };
         public PterodactylUser User = new() { Id = 7, Email = "owner@example.test" };
         public PterodactylServer Server = new()
         {
@@ -125,9 +125,9 @@ public sealed class SubscriptionResourceTests
             DiskMib = 1048576,
             AllocatedResources = new() { MemoryMib = 4096, DiskMib = 25600 }
         };
-        public List<(string Path, string Body)> Writes = [];
+        public readonly List<(string Path, string Body)> Writes = [];
         public string? ConfirmationMismatch;
-        public PterodactylSubscriptionResources Resources;
+        public readonly PterodactylSubscriptionResources Resources;
         public Harness()
         {
             _http = new(this, disposeHandler: false);

@@ -289,15 +289,15 @@ public sealed class SubscriptionManagementTests
     internal sealed class Harness
     {
         public const string Owner = "owner@example.test";
-        public FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
-        public MemoryStore Store = new();
-        public FakeStripe Stripe;
-        public FakeResources Resources = new();
+        public readonly FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
+        public readonly MemoryStore Store = new();
+        public readonly FakeStripe Stripe;
+        public readonly FakeResources Resources = new();
         public readonly CommerceHostingPlan Current;
-        public CommerceHostingPlan Target;
+        public readonly CommerceHostingPlan Target;
         public readonly ManagedService Managed;
-        public SubscriptionManagementOptions Options = new() { Enabled = true, ReconciliationEnabled = true };
-        public SubscriptionManagementService Service;
+        public readonly SubscriptionManagementOptions Options = new() { Enabled = true, ReconciliationEnabled = true };
+        public readonly SubscriptionManagementService Service;
         public Harness(bool downgrade = false)
         {
             var game = Guid.NewGuid();
@@ -343,7 +343,7 @@ public sealed class SubscriptionManagementTests
     {
         public ManagedService Managed = null!;
         public CommerceHostingPlan Target = null!;
-        public Dictionary<Guid, SubscriptionPlanChange> Changes = [];
+        public readonly Dictionary<Guid, SubscriptionPlanChange> Changes = [];
         public Guid? AppliedPlan;
         private readonly object _gate = new();
         private static SubscriptionPlanChange Copy(SubscriptionPlanChange c) => JsonSerializer.Deserialize<SubscriptionPlanChange>(JsonSerializer.Serialize(c))!;
@@ -370,9 +370,11 @@ public sealed class SubscriptionManagementTests
     internal sealed class FakeStripe : ISubscriptionGateway
     {
         public bool IsConfigured => true;
-        public Subscription Sub;
-        public Price CurrentPrice = Price("price_current", 1000), TargetPrice;
-        public Invoice Baseline, Invoice;
+        public readonly Subscription Sub;
+        public readonly Price CurrentPrice = Price("price_current", 1000);
+        public readonly Price TargetPrice;
+        public readonly Invoice Baseline;
+        public Invoice Invoice;
         public long Due = 476, Recurring = 2000;
         public int Upgrades, Schedules, Releases;
         public bool ThrowAfterUpgrade;
