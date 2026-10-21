@@ -49,7 +49,8 @@ public sealed class PterodactylSubscriptionResources(IPterodactylClient panel) :
         }, ct);
         if (after.Id != before.Id || after.Uuid != before.Uuid || after.User != before.User
             || after.Egg != before.Egg || after.Node != before.Node || after.Allocation != before.Allocation
-            || after.Limits?.Memory != change.MemoryMb || after.Limits?.Cpu != change.CpuPercent || after.Limits?.Disk != change.DiskMb)
+            || after.Limits is null
+            || after.Limits.Memory != change.MemoryMb || after.Limits.Cpu != change.CpuPercent || after.Limits.Disk != change.DiskMb)
             throw new InvalidOperationException("Panel did not confirm the expected build update.");
     }
 

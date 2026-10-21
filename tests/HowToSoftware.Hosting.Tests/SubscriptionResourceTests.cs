@@ -77,24 +77,62 @@ public sealed class SubscriptionResourceTests
         Assert.Empty(h.Writes);
         Assert.Equal(25600, h.Server.Limits!.Disk);
     }
+
+    [Theory]
+    [InlineData("limits")]
+    [InlineData("memory")]
+    [InlineData("cpu")]
+    [InlineData("disk")]
+    [InlineData("uuid")]
+    [InlineData("owner")]
+    [InlineData("egg")]
+    [InlineData("node")]
+    [InlineData("allocation")]
+    public async Task MissingLimitsOrMismatchedBuildConfirmationIsRejected(string mismatch)
+    {
+        using var h = new Harness { ConfirmationMismatch = mismatch };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => h.Resources.ApplyAsync(h.Service, h.Change, default));
+
+        Assert.Equal("Panel did not confirm the expected build update.", error.Message);
+        var write = Assert.Single(h.Writes);
+        Assert.Equal("/api/application/servers/42/build", write.Path);
+        Assert.Equal("same-server-uuid", h.Server.Uuid);
+        Assert.Equal(42, h.Server.Id);
+    }
+
     private sealed class Harness : HttpMessageHandler
     {
         private readonly HttpClient _http;
         public ManagedService Service = new SubscriptionManagementTests.Harness().Managed;
         public SubscriptionPlanChange Change = new() { MemoryMb = 8192, CpuPercent = 300, DiskMb = 25600, BackupLimit = 1, DatabaseLimit = 0, AllocationLimit = 1, Direction = PlanChangeDirection.Upgrade };
         public PterodactylUser User = new() { Id = 7, Email = "owner@example.test" };
-        public PterodactylServer Server = new() { Id = 42, Uuid = "same-server-uuid", User = 7, Egg = 15, Node = 9, Allocation = 77,
+        public PterodactylServer Server = new()
+        {
+            Id = 42,
+            Uuid = "same-server-uuid",
+            User = 7,
+            Egg = 15,
+            Node = 9,
+            Allocation = 77,
             Limits = new() { Memory = 4096, Disk = 25600, Cpu = 300, Swap = 128, Io = 600, Threads = "0-1", OomDisabled = true },
-            FeatureLimits = new() { Allocations = 1, Backups = 1, Databases = 0 } };
-        public PterodactylNode Node = new() { Id = 9, MemoryMib = 65536, DiskMib = 1048576,
-            AllocatedResources = new() { MemoryMib = 4096, DiskMib = 25600 } };
+            FeatureLimits = new() { Allocations = 1, Backups = 1, Databases = 0 }
+        };
+        public PterodactylNode Node = new()
+        {
+            Id = 9,
+            MemoryMib = 65536,
+            DiskMib = 1048576,
+            AllocatedResources = new() { MemoryMib = 4096, DiskMib = 25600 }
+        };
         public List<(string Path, string Body)> Writes = [];
+        public string? ConfirmationMismatch;
         public PterodactylSubscriptionResources Resources;
         public Harness()
         {
             _http = new(this, disposeHandler: false);
             var client = new PterodactylClient(_http, new Monitor<PterodactylOptions>(new()
-                { ApiKey = "ptla_FAKE_TEST_KEY", BaseUrl = "https://panel.example.test" }), NullLogger<PterodactylClient>.Instance);
+            { ApiKey = "ptla_FAKE_TEST_KEY", BaseUrl = "https://panel.example.test" }), NullLogger<PterodactylClient>.Instance);
             Resources = new(client);
         }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
@@ -107,7 +145,20 @@ public sealed class SubscriptionResourceTests
                 using var json = JsonDocument.Parse(body);
                 var limits = json.RootElement.GetProperty("limits");
                 Server = Server with { Limits = Server.Limits! with { Memory = limits.GetProperty("memory").GetInt32(), Cpu = limits.GetProperty("cpu").GetInt32(), Disk = limits.GetProperty("disk").GetInt32() } };
-                response = new { attributes = Server };
+                var confirmation = ConfirmationMismatch switch
+                {
+                    "limits" => Server with { Limits = null },
+                    "memory" => Server with { Limits = Server.Limits! with { Memory = Change.MemoryMb + 1024 } },
+                    "cpu" => Server with { Limits = Server.Limits! with { Cpu = Change.CpuPercent + 100 } },
+                    "disk" => Server with { Limits = Server.Limits! with { Disk = Change.DiskMb - 1024 } },
+                    "uuid" => Server with { Uuid = "another-server-uuid" },
+                    "owner" => Server with { User = 99 },
+                    "egg" => Server with { Egg = 16 },
+                    "node" => Server with { Node = 10 },
+                    "allocation" => Server with { Allocation = 78 },
+                    _ => Server
+                };
+                response = new { attributes = confirmation };
             }
             else if (request.RequestUri!.AbsolutePath.EndsWith("/users", StringComparison.Ordinal)) response = new { data = new[] { new { attributes = User } } };
             else if (request.RequestUri.AbsolutePath.EndsWith("/nodes", StringComparison.Ordinal)) response = new { data = new[] { new { attributes = Node } } };

@@ -13,8 +13,13 @@ public sealed class CustomerEndpointTests : IDisposable
 {
     private readonly AccessFake _access = new();
     private readonly WorkspaceFake _workspace = new();
-    private WebApplicationFactory<Program> Factory(string environment = "Development") =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    private WebApplicationFactory<Program> Factory(string environment = "Development")
+    {
+        var factory = new WebApplicationFactory<Program>();
+        // The root owns factories returned by WithWebHostBuilder, including their clients.
+        // Track that owner rather than leaving it behind while tracking only the child.
+        _factories.Add(factory);
+        return factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment(environment);
             builder.UseSetting("SQLSERVER_CONNECTION_STRING", "REPLACE_ME");
@@ -32,10 +37,11 @@ public sealed class CustomerEndpointTests : IDisposable
                 s.RemoveAll<ICustomerWorkspace>(); s.AddSingleton<ICustomerWorkspace>(_workspace);
             });
         });
+    }
     private readonly List<WebApplicationFactory<Program>> _factories = [];
     private HttpClient Client(string environment = "Development")
     {
-        var factory = Factory(environment); _factories.Add(factory);
+        var factory = Factory(environment);
         var client = factory.CreateClient(new() { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
         client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en");
         return client;
@@ -80,7 +86,8 @@ public sealed class CustomerEndpointTests : IDisposable
         var account = await client.GetStringAsync("/account");
         Assert.Contains("owner@example.test", account);
         Assert.Equal("owner@example.test", _workspace.Owner);
-        using var logout = await client.PostAsync("/account/logout", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = await Csrf(client) }));
+        using var logoutContent = new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = await Csrf(client) });
+        using var logout = await client.PostAsync("/account/logout", logoutContent);
         Assert.Equal(HttpStatusCode.Redirect, logout.StatusCode);
         Assert.Equal(1, _access.Revocations);
     }
@@ -91,8 +98,9 @@ public sealed class CustomerEndpointTests : IDisposable
         var html = await client.GetStringAsync("/account?preview=true&tab=support");
         Assert.Contains("Local interface preview", html);
         Assert.Equal(0, _workspace.Loads);
-        using var response = await client.PostAsync("/account/support", new FormUrlEncodedContent(new Dictionary<string, string>
-        { ["Subject"] = "Support", ["Message"] = "A real support request.", ["__RequestVerificationToken"] = await Csrf(client, "/account?preview=true&tab=support") }));
+        using var supportContent = new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["Subject"] = "Support", ["Message"] = "A real support request.", ["__RequestVerificationToken"] = await Csrf(client, "/account?preview=true&tab=support") });
+        using var response = await client.PostAsync("/account/support", supportContent);
         Assert.Equal("/account?notice=invalid", response.Headers.Location!.ToString());
         Assert.Equal(0, _workspace.SupportCalls);
     }
@@ -113,8 +121,9 @@ public sealed class CustomerEndpointTests : IDisposable
         HttpStatusCode last = default;
         for (var i = 0; i < 4; i++)
         {
-            using var response = await client.PostAsync("/account/access/request", new FormUrlEncodedContent(new Dictionary<string, string>
-            { ["Email"] = "owner@example.test", ["__RequestVerificationToken"] = token }));
+            using var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            { ["Email"] = "owner@example.test", ["__RequestVerificationToken"] = token });
+            using var response = await client.PostAsync("/account/access/request", requestContent);
             last = response.StatusCode;
         }
         Assert.Equal(HttpStatusCode.TooManyRequests, last);
@@ -129,8 +138,9 @@ public sealed class CustomerEndpointTests : IDisposable
         var csrf = await Csrf(client);
         foreach (var provider in new[] { "discord", "active-directory", "unknown" })
         {
-            using var login = await client.PostAsync("/account/access/external", new FormUrlEncodedContent(new Dictionary<string, string>
-            { ["Provider"] = provider, ["__RequestVerificationToken"] = csrf }));
+            using var externalLoginContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            { ["Provider"] = provider, ["__RequestVerificationToken"] = csrf });
+            using var login = await client.PostAsync("/account/access/external", externalLoginContent);
             Assert.Equal(HttpStatusCode.NotFound, login.StatusCode);
         }
         using var callback = await client.GetAsync("/account/connections/callback/discord?code=forged&state=forged");
@@ -158,7 +168,6 @@ public sealed class CustomerEndpointTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(0, _access.Confirmations);
     }
-    public void Dispose() { foreach (var f in _factories) f.Dispose(); }
     private sealed class AccessFake : ICustomerAccess
     {
         public const string Challenge = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
