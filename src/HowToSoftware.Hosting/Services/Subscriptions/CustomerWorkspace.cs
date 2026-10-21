@@ -58,9 +58,9 @@ public sealed class CustomerWorkspace(ISubscriptionStore store, ISubscriptionGat
                     }
                     if (tab is "overview" or "invoices")
                     {
-                        foreach (var invoice in await stripe.InvoicesAsync(service.CustomerId, service.SubscriptionId, ct))
+                        foreach (var invoice in (await stripe.InvoicesAsync(service.CustomerId, service.SubscriptionId, ct))
+                            .Where(invoice => invoice.CustomerId == service.CustomerId && invoice.Parent?.SubscriptionDetails?.SubscriptionId == service.SubscriptionId))
                         {
-                            if (invoice.CustomerId != service.CustomerId || invoice.Parent?.SubscriptionDetails?.SubscriptionId != service.SubscriptionId) continue;
                             invoices.Add(new(invoice.Number ?? invoice.Id, invoice.Status == "paid" ? invoice.AmountPaid : invoice.AmountDue,
                                 invoice.Currency, invoice.Status, invoice.Created, SafeStripeLink(invoice.HostedInvoiceUrl), SafeStripeLink(invoice.InvoicePdf)));
                         }
@@ -97,8 +97,15 @@ public sealed class CustomerWorkspace(ISubscriptionStore store, ISubscriptionGat
         var now = clock.GetUtcNow();
         // Bound volume in addition to per-IP endpoint limits.
         if (await db.CustomerSupport.CountAsync(x => x.NormalizedEmail == owner && x.CreatedAt > now.AddHours(-1), ct) >= 5) return false;
-        db.CustomerSupport.Add(new() { Id = Guid.NewGuid(), NormalizedEmail = owner, Subject = subject, Message = message,
-            Locale = locale == "pt-BR" ? "pt-BR" : "en", CreatedAt = now });
+        db.CustomerSupport.Add(new()
+        {
+            Id = Guid.NewGuid(),
+            NormalizedEmail = owner,
+            Subject = subject,
+            Message = message,
+            Locale = locale == "pt-BR" ? "pt-BR" : "en",
+            CreatedAt = now
+        });
         await db.SaveChangesAsync(ct);
         return true; // A saved request survives relay outages and is delivered by the worker.
     }

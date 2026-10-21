@@ -283,9 +283,8 @@ public sealed class DiscordIdentityProtocolTests
                 try
                 {
                     if (response.Headers.TryGetValues("Set-Cookie", out var values))
-                        foreach (var value in values)
+                        foreach (var pair in values.Select(value => value.Split(';')[0].Split('=', 2)))
                         {
-                            var pair = value.Split(';')[0].Split('=', 2);
                             if (pair.Length == 2 && pair[1].Length != 0) Cookies[pair[0]] = pair[1];
                             else Cookies.Remove(pair[0]);
                         }

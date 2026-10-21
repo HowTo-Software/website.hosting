@@ -19,20 +19,18 @@ public sealed class StorefrontCurrencyService(IOptions<HostingPlanPricingOptions
         var candidates = new List<(string Tag, decimal Quality, int Position)>();
         var position = 0;
         foreach (var header in acceptLanguages ?? [])
-        foreach (var raw in (header ?? "").Split(','))
-        {
-            var parts = raw.Trim().Split(';');
-            var quality = 1m;
-            foreach (var parameter in parts.Skip(1))
+            foreach (var parts in (header ?? "").Split(',').Select(raw => raw.Trim().Split(';')))
             {
-                var pair = parameter.Trim().Split('=', 2);
-                if (pair.Length == 2 && pair[0].Equals("q", StringComparison.OrdinalIgnoreCase)
-                    && (!decimal.TryParse(pair[1], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out quality)
-                        || quality is < 0m or > 1m)) quality = 0m;
+                var quality = 1m;
+                foreach (var pair in parts.Skip(1).Select(parameter => parameter.Trim().Split('=', 2)))
+                {
+                    if (pair.Length == 2 && pair[0].Equals("q", StringComparison.OrdinalIgnoreCase)
+                        && (!decimal.TryParse(pair[1], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out quality)
+                            || quality is < 0m or > 1m)) quality = 0m;
+                }
+                if (quality > 0m) candidates.Add((parts[0].Trim(), quality, position));
+                position++;
             }
-            if (quality > 0m) candidates.Add((parts[0].Trim(), quality, position));
-            position++;
-        }
         // Language alone is not geography: Portuguese (Portugal) and bare "pt" stay USD.
         var preferred = candidates.OrderByDescending(x => x.Quality).ThenBy(x => x.Position).FirstOrDefault().Tag;
         return preferred is not null && Regex.IsMatch(preferred, "^[a-z]{2,3}(?:-[a-z]{4})?-BR$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
@@ -56,8 +54,13 @@ public sealed class StorefrontCurrencyService(IOptions<HostingPlanPricingOptions
     {
         var baseAmount = ConvertAmount(quote.BaseAmount, currency);
         var finalAmount = ConvertAmount(quote.FinalAmount, currency);
-        return quote with { MonthlyPrice = ConvertAmount(quote.MonthlyPrice, currency),
-            BaseAmount = baseAmount, FinalAmount = finalAmount, DiscountAmount = baseAmount - finalAmount };
+        return quote with
+        {
+            MonthlyPrice = ConvertAmount(quote.MonthlyPrice, currency),
+            BaseAmount = baseAmount,
+            FinalAmount = finalAmount,
+            DiscountAmount = baseAmount - finalAmount
+        };
     }
 
     public string FormatNumber(decimal selectedCurrencyAmount, string currency) =>

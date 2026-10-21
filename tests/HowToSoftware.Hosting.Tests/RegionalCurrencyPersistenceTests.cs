@@ -88,13 +88,12 @@ public sealed class RegionalCurrencyPersistenceTests
             var prices = await db.PlanBillingPrices.ToListAsync();
             Assert.NotEmpty(plans);
             Assert.Equal(plans.Count * 6, prices.Count);
-            foreach (var plan in plans)
+            foreach (var planPrices in plans.Select(plan => prices.Where(x => x.PlanId == plan.Id).ToArray()))
             {
-                var planPrices = prices.Where(x => x.PlanId == plan.Id).ToArray();
                 Assert.Equal(6, planPrices.Length);
                 foreach (var period in new[] { "monthly", "quarterly", "annual" })
-                foreach (var currency in new[] { "USD", "BRL" })
-                    Assert.Single(planPrices, x => x.BillingPeriod == period && x.Currency == currency);
+                    foreach (var currency in new[] { "USD", "BRL" })
+                        Assert.Single(planPrices, x => x.BillingPeriod == period && x.Currency == currency);
             }
             var firstPlan = Assert.Single(plans, x => x.Slug == "zomboid-4gb");
             foreach (var (period, usd, brl) in new[]
@@ -127,8 +126,12 @@ public sealed class RegionalCurrencyPersistenceTests
 
     private static PlanBillingPrice Price(Guid planId, string currency, long amount) => new()
     {
-        Id = Guid.NewGuid(), PlanId = planId, BillingPeriod = "monthly", Currency = currency,
-        AmountCents = amount, Active = true
+        Id = Guid.NewGuid(),
+        PlanId = planId,
+        BillingPeriod = "monthly",
+        Currency = currency,
+        AmountCents = amount,
+        Active = true
     };
 
     private static async Task<Guid> AddPlanAsync(CommerceDbContext db)
@@ -138,8 +141,15 @@ public sealed class RegionalCurrencyPersistenceTests
         db.Games.Add(new CommerceGame { Id = gameId, Slug = "fixture-game", Name = "Fixture game" });
         db.HostingPlans.Add(new CommerceHostingPlan
         {
-            Id = planId, GameId = gameId, Slug = "fixture-plan", Name = "Fixture plan", Currency = "USD",
-            RamMb = 4096, CpuPercent = 300, DiskMb = 25600, MonthlyPriceCents = 799
+            Id = planId,
+            GameId = gameId,
+            Slug = "fixture-plan",
+            Name = "Fixture plan",
+            Currency = "USD",
+            RamMb = 4096,
+            CpuPercent = 300,
+            DiskMb = 25600,
+            MonthlyPriceCents = 799
         });
         await db.SaveChangesAsync();
         return planId;
