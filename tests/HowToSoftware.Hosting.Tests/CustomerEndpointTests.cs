@@ -67,8 +67,9 @@ public sealed class CustomerEndpointTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         Assert.Equal(0, _access.Confirmations);
         var csrf = await Csrf(client, "/account?verify=" + AccessFake.Challenge);
-        using var accepted = await client.PostAsync("/account/access/confirm", new FormUrlEncodedContent(new Dictionary<string, string>
-        { ["Token"] = AccessFake.Challenge, ["__RequestVerificationToken"] = csrf }));
+        using var acceptedContent = new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["Token"] = AccessFake.Challenge, ["__RequestVerificationToken"] = csrf });
+        using var accepted = await client.PostAsync("/account/access/confirm", acceptedContent);
         Assert.Equal(HttpStatusCode.Redirect, accepted.StatusCode);
         var cookie = accepted.Headers.GetValues("Set-Cookie").Single(x => x.StartsWith(CustomerSessionCookie.Name, StringComparison.Ordinal));
         Assert.Contains("httponly", cookie, StringComparison.OrdinalIgnoreCase);
