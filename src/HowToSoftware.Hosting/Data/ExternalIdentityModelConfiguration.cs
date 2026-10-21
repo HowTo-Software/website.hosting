@@ -34,8 +34,8 @@ internal static class ExternalIdentityModelConfiguration
         });
         var ticks = new ValueConverter<DateTimeOffset, long>(v => v.UtcTicks, v => new DateTimeOffset(v, TimeSpan.Zero));
         foreach (var type in new[] { typeof(CustomerExternalIdentity), typeof(ExternalIdentityFlow) })
-            foreach (var property in model.Entity(type).Metadata.GetProperties())
-                if (property.ClrType == typeof(DateTimeOffset) || property.ClrType == typeof(DateTimeOffset?))
-                    property.SetValueConverter(ticks);
+            foreach (var property in model.Entity(type).Metadata.GetProperties()
+                .Where(property => property.ClrType == typeof(DateTimeOffset) || property.ClrType == typeof(DateTimeOffset?)))
+                property.SetValueConverter(ticks);
     }
 }

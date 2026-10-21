@@ -51,8 +51,8 @@ internal static class CustomerAreaModelConfiguration
         // and the hermetic SQLite test provider. Existing columns and data are untouched.
         var ticks = new ValueConverter<DateTimeOffset, long>(v => v.UtcTicks, v => new DateTimeOffset(v, TimeSpan.Zero));
         foreach (var type in new[] { typeof(CustomerAccessRecord), typeof(CustomerSupportRecord), typeof(SubscriptionPlanChange) })
-            foreach (var property in model.Entity(type).Metadata.GetProperties())
-                if (property.ClrType == typeof(DateTimeOffset) || property.ClrType == typeof(DateTimeOffset?))
-                    property.SetValueConverter(ticks);
+            foreach (var property in model.Entity(type).Metadata.GetProperties()
+                .Where(property => property.ClrType == typeof(DateTimeOffset) || property.ClrType == typeof(DateTimeOffset?)))
+                property.SetValueConverter(ticks);
     }
 }

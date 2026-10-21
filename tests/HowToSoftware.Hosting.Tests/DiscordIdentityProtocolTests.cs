@@ -300,20 +300,20 @@ public sealed class DiscordIdentityProtocolTests
         }
         public async ValueTask DisposeAsync()
         {
-            try
+            // These resources must outlive Create() and every OAuth request. Scope them here,
+            // in teardown order, rather than disposing a configuration client before returning it.
+            await using (_connection)
+            using (_configuration)
+            using (_oauthBackchannel)
             {
                 Client?.Dispose();
                 if (_host is not null)
                 {
-                    try { await _host.StopAsync(); }
-                    finally { _host.Dispose(); }
+                    using (_host)
+                    {
+                        await _host.StopAsync();
+                    }
                 }
-            }
-            finally
-            {
-                _oauthBackchannel.Dispose();
-                _configuration.Dispose();
-                await _connection.DisposeAsync();
             }
         }
     }
