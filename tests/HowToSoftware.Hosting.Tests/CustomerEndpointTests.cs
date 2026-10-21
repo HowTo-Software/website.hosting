@@ -62,7 +62,8 @@ public sealed class CustomerEndpointTests : IDisposable
     public async Task ConfirmationRequiresCsrfAndIssuesTransportAwareRevocableSession()
     {
         using var client = Client();
-        using var rejected = await client.PostAsync("/account/access/confirm", new FormUrlEncodedContent(new Dictionary<string, string> { ["Token"] = AccessFake.Challenge }));
+        using var rejectedContent = new FormUrlEncodedContent(new Dictionary<string, string> { ["Token"] = AccessFake.Challenge });
+        using var rejected = await client.PostAsync("/account/access/confirm", rejectedContent);
         Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         Assert.Equal(0, _access.Confirmations);
         var csrf = await Csrf(client, "/account?verify=" + AccessFake.Challenge);
