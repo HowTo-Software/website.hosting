@@ -58,11 +58,11 @@ public sealed class DiscordIdentityProtocolTests
         var flow = QueryHelpers.ParseQuery(new Uri(h.Client.BaseAddress!, callback.Headers.Location).Query)["flow"].ToString();
         using var result = await h.Post("/account/connections/confirm", new() { ["FlowId"] = flow, ["__RequestVerificationToken"] = h.Csrf });
         Assert.Equal("/account?tab=account&notice=connection-complete", result.Headers.Location!.OriginalString);
-        Assert.True(h.Cookies.ContainsKey(CustomerSessionCookie.Name));
+        Assert.True(h.Cookies.TryGetValue(CustomerSessionCookie.Name, out var sessionCookieValue));
         await using var db = h.Factory.CreateDbContext();
         var owner = await db.CustomerAccess.SingleAsync();
         Assert.Equal("actual-owner@example.test", owner.NormalizedEmail); // Ignore Discord's forged email/role.
-        Assert.Equal(CustomerAccessService.Hash(h.Cookies[CustomerSessionCookie.Name]), owner.SessionHash);
+        Assert.Equal(CustomerAccessService.Hash(sessionCookieValue), owner.SessionHash);
         Assert.Equal(1, await db.CustomerExternalIdentities.CountAsync());
         var authentication = h.Server.Services.GetRequiredService<IAuthenticationSchemeProvider>();
         Assert.Null(await authentication.GetDefaultAuthenticateSchemeAsync());
@@ -178,7 +178,7 @@ public sealed class DiscordIdentityProtocolTests
         public HttpClient Client = null!;
         public TestFactory Factory = null!;
         public readonly FakeDiscord Backchannel = new();
-        public Dictionary<string, string> Cookies = [];
+        public readonly Dictionary<string, string> Cookies = [];
         public string Csrf = "";
         public Harness()
         {

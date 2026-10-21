@@ -293,8 +293,9 @@ public sealed class SubscriptionManagementTests
         public MemoryStore Store = new();
         public FakeStripe Stripe;
         public FakeResources Resources = new();
-        public CommerceHostingPlan Current, Target;
-        public ManagedService Managed;
+        public readonly CommerceHostingPlan Current;
+        public CommerceHostingPlan Target;
+        public readonly ManagedService Managed;
         public SubscriptionManagementOptions Options = new() { Enabled = true, ReconciliationEnabled = true };
         public SubscriptionManagementService Service;
         public Harness(bool downgrade = false)
@@ -308,9 +309,21 @@ public sealed class SubscriptionManagementTests
                 Microsoft.Extensions.Options.Options.Create(new StripeOptions()), Clock, NullLogger<SubscriptionManagementService>.Instance);
         }
         public Task<SubscriptionQuoteResult> Preview() => Service.PreviewAsync(Owner, Managed.Id, Target.Id, default);
-        private static CommerceHostingPlan Plan(Guid game, int ram) => new() { Id = Guid.NewGuid(), GameId = game,
-            Slug = "plan-" + ram, Name = "Plan " + ram, Currency = "usd", RamMb = ram, CpuPercent = 300, DiskMb = 25600,
-            AllocationLimit = 1, BackupLimit = 1, DatabaseLimit = 0, Active = true };
+        private static CommerceHostingPlan Plan(Guid game, int ram) => new()
+        {
+            Id = Guid.NewGuid(),
+            GameId = game,
+            Slug = "plan-" + ram,
+            Name = "Plan " + ram,
+            Currency = "usd",
+            RamMb = ram,
+            CpuPercent = 300,
+            DiskMb = 25600,
+            AllocationLimit = 1,
+            BackupLimit = 1,
+            DatabaseLimit = 0,
+            Active = true
+        };
     }
     internal sealed class FakeResources : ISubscriptionResources
     {
@@ -366,14 +379,30 @@ public sealed class SubscriptionManagementTests
         public FakeStripe(DateTimeOffset now, bool downgrade)
         {
             TargetPrice = Price("price_target", downgrade ? 500 : 2000);
-            Sub = new() { Id = "sub_test", CustomerId = "cus_test", Status = "active", Currency = "usd", CollectionMethod = "charge_automatically",
-                LatestInvoiceId = "in_baseline", Items = new() { Data = [new() { Id = "si_test", Price = CurrentPrice, Quantity = 1, CurrentPeriodStart = now.UtcDateTime, CurrentPeriodEnd = now.AddDays(30).UtcDateTime }] } };
+            Sub = new()
+            {
+                Id = "sub_test",
+                CustomerId = "cus_test",
+                Status = "active",
+                Currency = "usd",
+                CollectionMethod = "charge_automatically",
+                LatestInvoiceId = "in_baseline",
+                Items = new() { Data = [new() { Id = "si_test", Price = CurrentPrice, Quantity = 1, CurrentPeriodStart = now.UtcDateTime, CurrentPeriodEnd = now.AddDays(30).UtcDateTime }] }
+            };
             Baseline = NewInvoice("in_baseline", "paid", now.UtcDateTime); Invoice = Baseline;
         }
         private static Price Price(string id, long amount) => new() { Id = id, Active = true, UnitAmount = amount, Currency = "usd", Type = "recurring", BillingScheme = "per_unit", Recurring = new() { Interval = "month", IntervalCount = 1, UsageType = "licensed" } };
-        public Invoice NewInvoice(string id, string status, DateTime start) => new() { Id = id, CustomerId = "cus_test", Currency = "usd", Status = status, AmountDue = Due, AmountRemaining = 0,
+        public Invoice NewInvoice(string id, string status, DateTime start) => new()
+        {
+            Id = id,
+            CustomerId = "cus_test",
+            Currency = "usd",
+            Status = status,
+            AmountDue = Due,
+            AmountRemaining = 0,
             Parent = new() { SubscriptionDetails = new() { SubscriptionId = "sub_test" } },
-            Lines = new() { Data = [new() { Pricing = new() { PriceDetails = new() { PriceId = "price_target" } }, Period = new() { Start = start } }] } };
+            Lines = new() { Data = [new() { Pricing = new() { PriceDetails = new() { PriceId = "price_target" } }, Period = new() { Start = start } }] }
+        };
         public void CompletePayment() { Sub.PendingUpdate = null; Sub.Items.Data[0].Price = TargetPrice; Invoice.Status = "paid"; }
         public Task<Subscription> ReadSubscriptionAsync(string id, CancellationToken ct) => Task.FromResult(Sub);
         public Task<Price> ReadPriceAsync(string id, CancellationToken ct) => Task.FromResult(id == "price_target" ? TargetPrice : CurrentPrice);

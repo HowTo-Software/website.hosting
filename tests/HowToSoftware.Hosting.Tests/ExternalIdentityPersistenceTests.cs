@@ -174,10 +174,10 @@ public sealed class ExternalIdentityPersistenceTests
 
     private sealed class Harness : IAsyncDisposable
     {
-        private SqliteConnection _connection = new("Data Source=:memory:");
+        private readonly SqliteConnection _connection = new("Data Source=:memory:");
         private ServiceProvider _services = null!;
         public Factory Factory = null!;
-        public FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
+        public readonly FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
         public ExternalIdentityOptions Options = new() { Discord = new() { Enabled = true, LoginEnabled = true } };
         public ExternalIdentityService Service = null!;
         public CustomerAccessService Native = null!;
@@ -200,9 +200,17 @@ public sealed class ExternalIdentityPersistenceTests
         {
             var id = Guid.NewGuid(); var session = CustomerAccessService.NewToken();
             await using var db = Factory.CreateDbContext();
-            db.CustomerAccess.Add(new() { Id = id, NormalizedEmail = email,
-                ChallengeHash = CustomerAccessService.Hash(CustomerAccessService.NewToken()), SessionHash = CustomerAccessService.Hash(session),
-                CreatedAt = Clock.GetUtcNow(), UsedAt = Clock.GetUtcNow(), ExpiresAt = Clock.GetUtcNow(), SessionExpiresAt = Clock.GetUtcNow().AddHours(1) });
+            db.CustomerAccess.Add(new()
+            {
+                Id = id,
+                NormalizedEmail = email,
+                ChallengeHash = CustomerAccessService.Hash(CustomerAccessService.NewToken()),
+                SessionHash = CustomerAccessService.Hash(session),
+                CreatedAt = Clock.GetUtcNow(),
+                UsedAt = Clock.GetUtcNow(),
+                ExpiresAt = Clock.GetUtcNow(),
+                SessionExpiresAt = Clock.GetUtcNow().AddHours(1)
+            });
             await db.SaveChangesAsync(); return (id, session);
         }
         public Task<bool> Verify(Guid id, string subject) => Service.VerifyAsync(id, "discord", ExternalProviders.DiscordIssuer, subject, "Discord user", default);

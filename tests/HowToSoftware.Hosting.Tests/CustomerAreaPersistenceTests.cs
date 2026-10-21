@@ -28,10 +28,26 @@ public sealed class CustomerAreaPersistenceTests
             var plan = await db.HostingPlans.SingleAsync();
             plan.Active = true;
             db.PlanBillingPrices.AddRange(
-                new PlanBillingPrice { Id = Guid.NewGuid(), PlanId = plan.Id, BillingPeriod = "monthly",
-                    Currency = "usd", AmountCents = 799, Active = true, StripePriceId = "price_usd" },
-                new PlanBillingPrice { Id = Guid.NewGuid(), PlanId = plan.Id, BillingPeriod = "monthly",
-                    Currency = "BRL", AmountCents = 5194, Active = true, StripePriceId = "price_brl" });
+                new PlanBillingPrice
+                {
+                    Id = Guid.NewGuid(),
+                    PlanId = plan.Id,
+                    BillingPeriod = "monthly",
+                    Currency = "usd",
+                    AmountCents = 799,
+                    Active = true,
+                    StripePriceId = "price_usd"
+                },
+                new PlanBillingPrice
+                {
+                    Id = Guid.NewGuid(),
+                    PlanId = plan.Id,
+                    BillingPeriod = "monthly",
+                    Currency = "BRL",
+                    AmountCents = 5194,
+                    Active = true,
+                    StripePriceId = "price_brl"
+                });
             await db.SaveChangesAsync();
         }
         var store = new SubscriptionStore(h.Factory);
@@ -125,9 +141,18 @@ public sealed class CustomerAreaPersistenceTests
         await using var h = await DatabaseHarness.Create();
         var seeded = await h.Seed();
         var store = new SubscriptionStore(h.Factory);
-        SubscriptionPlanChange Change() => new() { Id = Guid.NewGuid(), HostingServiceId = seeded.Id, TargetPlanId = seeded.Plan.Id,
-            StripeSubscriptionId = "sub_test", StripeCustomerId = "cus_test", State = PlanChangeState.Quoted,
-            CreatedAt = h.Clock.GetUtcNow(), UpdatedAt = h.Clock.GetUtcNow(), QuoteExpiresAt = h.Clock.GetUtcNow().AddMinutes(5) };
+        SubscriptionPlanChange Change() => new()
+        {
+            Id = Guid.NewGuid(),
+            HostingServiceId = seeded.Id,
+            TargetPlanId = seeded.Plan.Id,
+            StripeSubscriptionId = "sub_test",
+            StripeCustomerId = "cus_test",
+            State = PlanChangeState.Quoted,
+            CreatedAt = h.Clock.GetUtcNow(),
+            UpdatedAt = h.Clock.GetUtcNow(),
+            QuoteExpiresAt = h.Clock.GetUtcNow().AddMinutes(5)
+        };
         var first = Change();
         Assert.True(await store.AddChangeAsync(first, default));
         Assert.False(await store.AddChangeAsync(Change(), default));
@@ -181,10 +206,10 @@ public sealed class CustomerAreaPersistenceTests
 
     private sealed class DatabaseHarness : IAsyncDisposable
     {
-        public SqliteConnection Connection = new("Data Source=:memory:");
+        public readonly SqliteConnection Connection = new("Data Source=:memory:");
         public TestFactory Factory = null!;
-        public RecordingMail Mail = new();
-        public FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
+        public readonly RecordingMail Mail = new();
+        public readonly FakeTimeProvider Clock = new(new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero));
         public CustomerAccessService Access = null!;
         private ServiceProvider _services = null!;
         public static async Task<DatabaseHarness> Create()
@@ -213,13 +238,32 @@ public sealed class CustomerAreaPersistenceTests
             await using var db = Factory.CreateDbContext();
             db.Games.Add(new() { Id = h.Managed.GameId, Slug = "project-zomboid", Name = "Project Zomboid" });
             db.HostingPlans.Add(h.Current);
-            db.Orders.Add(new() { Id = h.Managed.OrderId, GameId = h.Managed.GameId, PlanId = h.Current.Id,
-                GameSlug = "project-zomboid", PlanSlug = h.Current.Slug, PlanName = h.Current.Name,
-                BillingPeriod = "monthly", Currency = "usd", Status = "paid", ProvisioningStage = "ready",
-                CustomerEmail = "Owner@Example.Test", StripeCustomerId = "cus_test" });
-            db.HostingServices.Add(new() { Id = h.Managed.Id, OrderId = h.Managed.OrderId, GameId = h.Managed.GameId,
-                PlanId = h.Current.Id, StripeSubscriptionId = "sub_test", PterodactylServerId = 42,
-                PterodactylServerUuid = "same-server-uuid", Status = "active" });
+            db.Orders.Add(new()
+            {
+                Id = h.Managed.OrderId,
+                GameId = h.Managed.GameId,
+                PlanId = h.Current.Id,
+                GameSlug = "project-zomboid",
+                PlanSlug = h.Current.Slug,
+                PlanName = h.Current.Name,
+                BillingPeriod = "monthly",
+                Currency = "usd",
+                Status = "paid",
+                ProvisioningStage = "ready",
+                CustomerEmail = "Owner@Example.Test",
+                StripeCustomerId = "cus_test"
+            });
+            db.HostingServices.Add(new()
+            {
+                Id = h.Managed.Id,
+                OrderId = h.Managed.OrderId,
+                GameId = h.Managed.GameId,
+                PlanId = h.Current.Id,
+                StripeSubscriptionId = "sub_test",
+                PterodactylServerId = 42,
+                PterodactylServerUuid = "same-server-uuid",
+                Status = "active"
+            });
             await db.SaveChangesAsync();
             return h.Managed;
         }
@@ -231,7 +275,7 @@ public sealed class CustomerAreaPersistenceTests
     }
     private sealed class RecordingMail : ITrialMailTransport
     {
-        public List<TrialMailMessage> Messages = [];
+        public readonly List<TrialMailMessage> Messages = [];
         public string Token => Regex.Match(Messages.Last().Body, "verify=([A-F0-9]{64})").Groups[1].Value;
         public Task DeliverAsync(TrialMailMessage message, CancellationToken ct) { Messages.Add(message); return Task.CompletedTask; }
     }
