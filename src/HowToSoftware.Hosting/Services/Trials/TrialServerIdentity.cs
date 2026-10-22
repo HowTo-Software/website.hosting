@@ -21,7 +21,7 @@ public static class TrialServerIdentity
         foreach (var rune in normalized.EnumerateRunes())
         {
             if (result.Length + rune.Utf16SequenceLength > MaxDisplayNameLength) break;
-            result.Append(rune.ToString());
+            result.Append(rune);
         }
         return result.Length > 0 ? result.ToString().TrimEnd() : null;
     }

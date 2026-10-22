@@ -60,15 +60,16 @@ public sealed class StripePixTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            var path = Path.Combine(directory.FullName, "src", "HowToSoftware.Hosting", "appsettings.json");
+            var path = Path.Join(directory.FullName, "src", "HowToSoftware.Hosting", "appsettings.json");
             if (File.Exists(path))
             {
                 // Deliberately bind only committed public JSON and explicit test overrides:
                 // no environment variables, user secrets, dotenv, or external services.
-                var configuration = new ConfigurationBuilder().AddJsonFile(path, optional: false);
+                using var configuration = new ConfigurationManager();
+                configuration.AddJsonFile(path, optional: false);
                 if (overrides is not null) configuration.AddInMemoryCollection(overrides);
                 var options = new StripeOptions();
-                configuration.Build().GetSection(StripeOptions.SectionName).Bind(options);
+                configuration.GetSection(StripeOptions.SectionName).Bind(options);
                 return options;
             }
             directory = directory.Parent;

@@ -22,11 +22,11 @@ public sealed class StorefrontCurrencyService(IOptions<HostingPlanPricingOptions
             foreach (var parts in (header ?? "").Split(',').Select(raw => raw.Trim().Split(';')))
             {
                 var quality = 1m;
-                foreach (var pair in parts.Skip(1).Select(parameter => parameter.Trim().Split('=', 2)))
+                foreach (var pair in parts.Skip(1).Select(parameter => parameter.Trim().Split('=', 2))
+                    .Where(pair => pair.Length == 2 && pair[0].Equals("q", StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (pair.Length == 2 && pair[0].Equals("q", StringComparison.OrdinalIgnoreCase)
-                        && (!decimal.TryParse(pair[1], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out quality)
-                            || quality is < 0m or > 1m)) quality = 0m;
+                    if (!decimal.TryParse(pair[1], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out quality)
+                        || quality is < 0m or > 1m) quality = 0m;
                 }
                 if (quality > 0m) candidates.Add((parts[0].Trim(), quality, position));
                 position++;

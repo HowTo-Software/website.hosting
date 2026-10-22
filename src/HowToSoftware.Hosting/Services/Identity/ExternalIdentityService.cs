@@ -34,9 +34,17 @@ public sealed class ExternalIdentityService(IDbContextFactory<CommerceDbContext>
         if (purpose == "link" && owner is null) return null;
         var secret = CustomerAccessService.NewToken();
         var now = clock.GetUtcNow();
-        var flow = new ExternalIdentityFlow { Id = Guid.NewGuid(), Provider = provider, Purpose = purpose,
-            CustomerAccessId = owner?.Id, OwnerSessionHash = owner?.SessionHash,
-            BrowserSecretHash = CustomerAccessService.Hash(secret), CreatedAt = now, ExpiresAt = now.AddMinutes(10) };
+        var flow = new ExternalIdentityFlow
+        {
+            Id = Guid.NewGuid(),
+            Provider = provider,
+            Purpose = purpose,
+            CustomerAccessId = owner?.Id,
+            OwnerSessionHash = owner?.SessionHash,
+            BrowserSecretHash = CustomerAccessService.Hash(secret),
+            CreatedAt = now,
+            ExpiresAt = now.AddMinutes(10)
+        };
         db.ExternalIdentityFlows.Add(flow);
         await db.SaveChangesAsync(ct);
         return new(flow.Id, secret);
@@ -86,16 +94,23 @@ public sealed class ExternalIdentityService(IDbContextFactory<CommerceDbContext>
                 if (conflicts.Count != 0 && !conflicts.All(x => x.CustomerAccessId == flow.CustomerAccessId
                     && x.Issuer == flow.Issuer && x.Subject == flow.Subject)) return new(false);
                 if (conflicts.Count == 0)
-                    db.CustomerExternalIdentities.Add(new() { Id = Guid.NewGuid(), CustomerAccessId = flow.CustomerAccessId!.Value,
-                        Provider = flow.Provider, Issuer = flow.Issuer!, Subject = flow.Subject!,
-                        DisplayName = flow.DisplayName!, LinkedAt = now });
+                    db.CustomerExternalIdentities.Add(new()
+                    {
+                        Id = Guid.NewGuid(),
+                        CustomerAccessId = flow.CustomerAccessId!.Value,
+                        Provider = flow.Provider,
+                        Issuer = flow.Issuer!,
+                        Subject = flow.Subject!,
+                        DisplayName = flow.DisplayName!,
+                        LinkedAt = now
+                    });
             }
             else
             {
                 var linkedOwner = await (from link in db.CustomerExternalIdentities
-                    join owner in db.CustomerAccess on link.CustomerAccessId equals owner.Id
-                    where link.Provider == flow.Provider && link.Issuer == flow.Issuer && link.Subject == flow.Subject
-                    select owner.Id).SingleOrDefaultAsync(ct);
+                                         join owner in db.CustomerAccess on link.CustomerAccessId equals owner.Id
+                                         where link.Provider == flow.Provider && link.Issuer == flow.Issuer && link.Subject == flow.Subject
+                                         select owner.Id).SingleOrDefaultAsync(ct);
                 if (linkedOwner == Guid.Empty) return new(false); // Explicit link first; no auto-provision/merge.
                 token = CustomerAccessService.NewToken();
                 await db.CustomerAccess.Where(x => x.Id == linkedOwner).ExecuteUpdateAsync(u =>
@@ -157,7 +172,7 @@ public sealed class ExternalIdentityService(IDbContextFactory<CommerceDbContext>
         foreach (var rune in safe.EnumerateRunes())
         {
             if (result.Length + rune.Utf16SequenceLength > 128) break;
-            result.Append(rune.ToString());
+            result.Append(rune);
         }
         return result.ToString();
     }
