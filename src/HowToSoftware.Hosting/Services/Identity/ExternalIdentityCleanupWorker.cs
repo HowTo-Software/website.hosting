@@ -21,7 +21,9 @@ public sealed class ExternalIdentityCleanupWorker(IServiceScopeFactory scopes, T
                 await db.ExternalIdentityFlows.Where(x => x.ExpiresAt < cutoff).ExecuteDeleteAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception e) { logger.LogWarning("External identity cleanup will retry ({FailureClass}).", e.GetType().Name); }
+            catch (DbUpdateException e) { logger.LogWarning(e, "External identity cleanup will retry ({FailureClass}).", e.GetType().Name); }
+            catch (InvalidOperationException e) { logger.LogWarning(e, "External identity cleanup will retry ({FailureClass}).", e.GetType().Name); }
+            catch (TimeoutException e) { logger.LogWarning(e, "External identity cleanup will retry ({FailureClass}).", e.GetType().Name); }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 }
