@@ -54,7 +54,8 @@ public sealed class SubscriptionReconciliationWorker(IServiceScopeFactory scopes
                 if (customers.Value.Enabled) await scope.ServiceProvider.GetRequiredService<ICustomerWorkspace>().DeliverPendingAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception e) { logger.LogWarning("Subscription worker will retry ({FailureClass}).", e.GetType().Name); }
+            catch (InvalidOperationException e) { logger.LogWarning("Subscription worker will retry ({FailureClass}).", e.GetType().Name); }
+            catch (TimeoutException e) { logger.LogWarning("Subscription worker will retry ({FailureClass}).", e.GetType().Name); }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 }
