@@ -18,6 +18,14 @@ public sealed class StorefrontCurrencyTests
     [InlineData("en-US;q=0.5,pt-BR;q=0.9", "brl")]
     [InlineData("pt-BR;q=0,en-US;q=0.9", "usd")]
     [InlineData("pt-BR;q=broken,en-US", "usd")]
+    [InlineData("pt-BR;q=broken;q=0.9,en-US;q=0.5", "brl")]
+    [InlineData("pt-BR;q=0.9;q=broken,en-US;q=0.5", "usd")]
+    [InlineData("pt-BR;q=1.5,en-US;q=0.5", "usd")]
+    [InlineData("pt-BR;q=,en-US;q=0.5", "usd")]
+    [InlineData("pt-BR;level=broken;Q=0.9,en-US;q=0.5", "brl")]
+    [InlineData("pt-BR;level=broken,en-US;q=0.9", "brl")]
+    [InlineData("pt-BR;q=0.5,en-US;q=0.5", "brl")]
+    [InlineData("en-US;q=0.5,pt-BR;q=0.5", "usd")]
     [InlineData("pt-BR-arbitrary", "usd")]
     public void RawBrowserPreferenceDoesNotConfuseLanguageWithRegion(string header, string expected) =>
         Assert.Equal(expected, Currency().ResolveBrowserCurrency([header]));
