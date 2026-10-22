@@ -34,7 +34,7 @@ public static class CustomerEndpoints
         context.Response.Headers.CacheControl = "no-store";
         try { return await action(); }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { throw; }
-        catch (Exception e)
+        catch (InvalidOperationException e)
         {
             context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("CustomerEndpoints")
                 .LogWarning("Customer action could not complete ({FailureClass}).", e.GetType().Name);
