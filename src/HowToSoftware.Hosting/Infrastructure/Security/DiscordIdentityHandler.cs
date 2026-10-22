@@ -18,7 +18,10 @@ public sealed class DiscordIdentityHandler(IOptionsMonitor<OAuthOptions> options
             return result.Failure is null ? result : Rejected();
         }
         catch (OperationCanceledException) when (Context.RequestAborted.IsCancellationRequested) { throw; }
-        catch (Exception) { return Rejected(); } // Provider bodies/codes/tokens must not become public error/log details.
+        catch (AuthenticationFailureException) { return Rejected(); }
+        catch (HttpRequestException) { return Rejected(); }
+        catch (TaskCanceledException) when (!Context.RequestAborted.IsCancellationRequested) { return Rejected(); }
+        catch (InvalidOperationException) { return Rejected(); } // Provider bodies/codes/tokens must not become public error/log details.
     }
 
     private static HandleRequestResult Rejected() =>
