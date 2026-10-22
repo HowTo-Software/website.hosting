@@ -81,7 +81,12 @@ public static class ExternalIdentityEndpoints
         context.Response.Headers.CacheControl = "no-store";
         try { return await action(); }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { throw; }
-        catch (Exception e)
+        catch (InvalidOperationException e)
+        {
+            ExternalIdentityRegistration.LogFailure(context, e);
+            return Results.LocalRedirect("/account?notice=connection-failed");
+        }
+        catch (ArgumentException e)
         {
             ExternalIdentityRegistration.LogFailure(context, e);
             return Results.LocalRedirect("/account?notice=connection-failed");
