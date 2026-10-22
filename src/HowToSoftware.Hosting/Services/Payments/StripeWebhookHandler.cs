@@ -1,6 +1,7 @@
 using global::Stripe;
 using global::Stripe.Checkout;
 using HowToSoftware.Hosting.Services.Orders;
+using HowToSoftware.Hosting.Services.Subscriptions;
 
 namespace HowToSoftware.Hosting.Services.Payments;
 
@@ -40,16 +41,19 @@ public sealed class StripeWebhookHandler : IStripeWebhookHandler
     private readonly IStripeCheckoutService _checkout;
     private readonly IOrderStore _orders;
     private readonly ILogger<StripeWebhookHandler> _logger;
+    private readonly ISubscriptionManagement? _subscriptions;
 
     /// <summary>Creates the handler.</summary>
     public StripeWebhookHandler(
         IStripeCheckoutService checkout,
         IOrderStore orders,
-        ILogger<StripeWebhookHandler> logger)
+        ILogger<StripeWebhookHandler> logger,
+        ISubscriptionManagement? subscriptions = null)
     {
         _checkout = checkout;
         _orders = orders;
         _logger = logger;
+        _subscriptions = subscriptions;
     }
 
     /// <inheritdoc />
@@ -99,6 +103,7 @@ public sealed class StripeWebhookHandler : IStripeWebhookHandler
                     if (stripeEvent.Data.Object is Subscription subscription)
                     {
                         await _checkout.HandleSubscriptionStateAsync(subscription, cancellationToken).ConfigureAwait(false);
+                        if (_subscriptions is not null) await _subscriptions.ReconcileAsync(subscription.Id, cancellationToken);
                     }
 
                     break;
@@ -108,6 +113,7 @@ public sealed class StripeWebhookHandler : IStripeWebhookHandler
                     if (stripeEvent.Data.Object is Invoice invoice)
                     {
                         await _checkout.HandleInvoiceStateAsync(invoice, cancellationToken).ConfigureAwait(false);
+                        if (_subscriptions is not null) await _subscriptions.ReconcileAsync(invoice.Parent?.SubscriptionDetails?.SubscriptionId, cancellationToken);
                     }
 
                     break;

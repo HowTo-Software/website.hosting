@@ -2,6 +2,7 @@
 @inject IPlanCatalogService Catalog
 @inject IGameCatalogService Games
 @inject IStringLocalizer<StorefrontText> Text
+@inject StorefrontCurrencyService Currencies
 
 <section class="teaser" id="plans" aria-labelledby="teaser-heading">
     <div class="hts-container hts-container--wide">
@@ -24,8 +25,8 @@
                         @if (Catalog.Quote(plan, BillingPeriod.Monthly) is { } quote)
                         {
                             <span>@Text["Plans.From"]</span>
-                            <p><strong>@Catalog.CurrencySymbol@quote.FinalAmount.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>@Text["Plans.PerMonth"]</span></p>
-                            <CtaButton Href="@SiteRoutes.Review(Games.Primary.Slug, plan.Slug, BillingPeriod.Monthly)" Variant="@(plan.IsRecommended ? CtaVariant.Primary : CtaVariant.Secondary)" TrailingIcon="IconName.ArrowRight">@Text["Plans.View"]</CtaButton>
+                            <p><strong>@Currencies.FormatCatalogAmount(quote.FinalAmount, Currency)</strong><span>@Text["Plans.PerMonth"]</span></p>
+                            <CtaButton Href="@SiteRoutes.Review(Games.Primary.Slug, plan.Slug, BillingPeriod.Monthly, Currency)" Variant="@(plan.IsRecommended ? CtaVariant.Primary : CtaVariant.Secondary)" TrailingIcon="IconName.ArrowRight">@Text["Plans.View"]</CtaButton>
                         }
                         else
                         {
@@ -41,6 +42,9 @@
 </section>
 
 @code {
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string Currency { get; set; } = "usd";
+
     private IReadOnlyList<HostingPlan> PreviewPlans
     {
         get

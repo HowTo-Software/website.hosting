@@ -25,6 +25,9 @@ This is the starting point for understanding the product, changing the code, and
 | Diagnose production failures | [Runbook](phase-6-operations/runbook.md) |
 | Recover services and data | [Disaster recovery](phase-6-operations/disaster-recovery.md) |
 | Use the site as a customer | [User guide](user/user-guide.md) |
+| Configure verified customer access, invoices, support and plan changes | [Customer area](CUSTOMER-AREA.md) |
+| Prepare dormant on-premises AD and Discord identities | [External identities](EXTERNAL-IDENTITIES.md) |
+| Configure actual USD/BRL checkout and eligible Pix subscriptions | [Regional pricing](REGIONAL-PRICING.md) |
 
 ## Project phases
 

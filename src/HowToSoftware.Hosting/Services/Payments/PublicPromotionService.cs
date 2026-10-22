@@ -15,6 +15,7 @@ public sealed record PublicPromotionOffer(
 public interface IPublicPromotionService
 {
     Task<IReadOnlyList<PublicPromotionOffer>> GetOffersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PublicPromotionOffer>> GetOffersAsync(string currency, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -27,7 +28,10 @@ public sealed class PublicPromotionService(
     IPromotionService promotions,
     ILogger<PublicPromotionService> logger) : IPublicPromotionService
 {
-    public async Task<IReadOnlyList<PublicPromotionOffer>> GetOffersAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<PublicPromotionOffer>> GetOffersAsync(CancellationToken cancellationToken = default) =>
+        GetOffersAsync("usd", cancellationToken);
+
+    public async Task<IReadOnlyList<PublicPromotionOffer>> GetOffersAsync(string currency, CancellationToken cancellationToken = default)
     {
         if (options.Value.Campaigns.Count == 0)
         {
@@ -47,10 +51,7 @@ public sealed class PublicPromotionService(
 
                 if (code.Length is 0 or > 64
                     || !BillingPolicy.TryParse(campaign.Period, out var period)
-                    || pricing.Price(campaign.GameSlug, campaign.PlanSlug, period) is not { } priced
-                    // The current promotion validator supports USD only. Do not imply that an
-                    // eligible USD coupon is an eligible discount in a different currency.
-                    || !string.Equals(priced.CurrencyCode, "usd", StringComparison.OrdinalIgnoreCase))
+                    || pricing.Price(campaign.GameSlug, campaign.PlanSlug, period, currency) is not { } priced)
                 {
                     continue;
                 }
@@ -63,7 +64,7 @@ public sealed class PublicPromotionService(
                 }
 
                 var result = await promotions.ValidateAsync(
-                    code, priced.Game.Slug, priced.Plan.Slug, priced.Quote, budget.Token);
+                    code, priced.Game.Slug, priced.Plan.Slug, priced.Quote, budget.Token, priced.CurrencyCode);
 
                 if (result is null || result.DiscountAmount <= 0m || result.FinalAmount < 0m)
                 {
@@ -75,7 +76,7 @@ public sealed class PublicPromotionService(
                     priced,
                     result.DiscountAmount,
                     result.FinalAmount,
-                    $"{SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, period)}&promo={Uri.EscapeDataString(code)}"));
+                    $"{SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, period)}&currency={priced.CurrencyCode}&promo={Uri.EscapeDataString(code)}"));
             }
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)

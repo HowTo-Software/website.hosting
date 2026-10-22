@@ -2,6 +2,7 @@
 @inject IPublicPromotionService Promotions
 @inject IPlanCatalogService Catalog
 @inject IStringLocalizer<CheckoutText> Text
+@inject StorefrontCurrencyService Currencies
 
 @if (_offers.Count > 0)
 {
@@ -34,10 +35,13 @@
 }
 
 @code {
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string Currency { get; set; } = "usd";
+
     private IReadOnlyList<PublicPromotionOffer> _offers = [];
 
-    protected override async Task OnInitializedAsync() => _offers = await Promotions.GetOffersAsync();
+    protected override async Task OnInitializedAsync() => _offers = await Promotions.GetOffersAsync(Currency);
 
     private string FormatAmount(decimal amount) =>
-        $"{Catalog.CurrencyCode.ToUpperInvariant()} {amount.ToString("N2", CultureInfo.CurrentCulture)}";
+        Currencies.FormatAmount(amount, Currency);
 }

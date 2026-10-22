@@ -28,13 +28,13 @@
     <value>HARDWARE</value>
   </data>
   <data name="Hero.Line1" xml:space="preserve">
-    <value>Infraestrutura própria.</value>
+    <value>Infraestrutura própria</value>
   </data>
   <data name="Hero.Line2" xml:space="preserve">
     <value>Feita para</value>
   </data>
   <data name="Hero.Line3" xml:space="preserve">
-    <value>o seu mundo.</value>
+    <value>o seu mundo</value>
   </data>
   <data name="Hero.Rail.Platform" xml:space="preserve">
     <value>PLATAFORMA</value>
@@ -262,7 +262,7 @@
     <value>Uplink 1 GbE</value>
   </data>
   <data name="Node.PlatformValue" xml:space="preserve">
-    <value>Ubuntu 24.04 LTS · bare metal</value>
+    <value>Ubuntu 26.04 LTS · bare metal</value>
   </data>
   <data name="Node.RegionValue" xml:space="preserve">
     <value>US Central</value>
@@ -457,7 +457,7 @@
     <value>Estas são as especificações da máquina. A memória, a alocação de CPU e o armazenamento do seu servidor são definidos pelo plano escolhido.</value>
   </data>
   <data name="Overview.GalleryTitle" xml:space="preserve">
-    <value>Conheça o nosso hardware de perto.</value>
+    <value>Conheça o nosso hardware de perto</value>
   </data>
   <data name="Overview.GalleryLede" xml:space="preserve">
     <value>Fotografias do nosso próprio rack: a parte frontal, o interior e os equipamentos instalados.</value>
@@ -466,13 +466,13 @@
     <value>Por trás do seu servidor</value>
   </data>
   <data name="Overview.OperationsTitle" xml:space="preserve">
-    <value>Uma plataforma. Responsabilidades separadas.</value>
+    <value>Uma plataforma. Responsabilidades separadas</value>
   </data>
   <data name="Overview.OperationsLede" xml:space="preserve">
     <value>O site, o painel e os jogos têm funções distintas. Abra um tópico para entender como essas partes se conectam.</value>
   </data>
   <data name="Overview.ClosingTitle" xml:space="preserve">
-    <value>Um lugar para o seu próximo mundo.</value>
+    <value>Um lugar para o seu próximo mundo</value>
   </data>
   <data name="Overview.ClosingNote" xml:space="preserve">
     <value>Compare os planos ou solicite um servidor de teste antes de escolher a sua configuração.</value>

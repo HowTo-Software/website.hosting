@@ -49,8 +49,9 @@ public static class SiteRoutes
     public static string Game(string gameSlug) => $"{GameHosting}/{gameSlug}";
 
     /// <summary>The review step for a plan on a game, with the chosen period.</summary>
-    public static string Review(string gameSlug, string planSlug, BillingPeriod period) =>
-        $"{GameHosting}/{gameSlug}/review?plan={WebUtility.UrlEncode(planSlug)}&period={BillingPolicy.Slug(period)}";
+    public static string Review(string gameSlug, string planSlug, BillingPeriod period, string? currency = null) =>
+        $"{GameHosting}/{gameSlug}/review?plan={WebUtility.UrlEncode(planSlug)}&period={BillingPolicy.Slug(period)}"
+        + (currency is null ? string.Empty : $"&currency={WebUtility.UrlEncode(currency)}");
 
     /// <summary>The cancel page for a specific order.</summary>
     public static string PaymentCancelFor(Guid orderId) => $"{PaymentCancel}?order={orderId:D}";

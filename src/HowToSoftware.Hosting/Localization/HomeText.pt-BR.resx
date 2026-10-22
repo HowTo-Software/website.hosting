@@ -22,7 +22,7 @@
     <value>que se recusam</value>
   </data>
   <data name="Hero.Line3" xml:space="preserve">
-    <value>a morrer.</value>
+    <value>a morrer</value>
   </data>
   <data name="Hero.Copy" xml:space="preserve">
     <value>Mundos persistentes de Knox County em alocação dedicada. Coleções do Workshop resolvidas para você, provisionamento feito por software e um painel de controle que trata seu servidor como o sistema em execução que ele é.</value>
@@ -76,7 +76,7 @@
     <value>rodando</value>
   </data>
   <data name="World.Line3" xml:space="preserve">
-    <value>sem você.</value>
+    <value>sem você</value>
   </data>
   <data name="World.Body1" xml:space="preserve">
     <value>Um mundo de Project Zomboid é uma simulação de longa duração, não uma partida. Estado do mapa, abrigos, veículos e loot são gravados em armazenamento que sobrevive a reinícios, mudanças de build e reconstruções da instância por baixo dele.</value>
@@ -109,7 +109,7 @@
     <value>Instale um mod</value>
   </data>
   <data name="Workshop.Accent" xml:space="preserve">
-    <value>com um clique.</value>
+    <value>com um clique</value>
   </data>
   <data name="Workshop.Body" xml:space="preserve">
     <value>Adicionar um mod a um servidor de Project Zomboid normalmente significa achar ele na Workshop, copiar dois identificadores diferentes da página, colar em duas linhas de configuração diferentes e acertar a ordem. Nosso painel faz essa parte. Você procura, aperta instalar, e o servidor fica configurado no próximo reinício.</value>
@@ -142,7 +142,7 @@
     <value>Do pedido ao</value>
   </data>
   <data name="Provisioning.Accent" xml:space="preserve">
-    <value>mundo no ar.</value>
+    <value>mundo no ar</value>
   </data>
   <data name="Provisioning.Lede" xml:space="preserve">
     <value>Cinco etapas, nenhuma passagem de bastão. Acompanhe pela página e veja o caminho de implantação se construir sozinho.</value>
@@ -208,7 +208,7 @@
     <value>O servidor inteiro,</value>
   </data>
   <data name="Cp.Accent" xml:space="preserve">
-    <value>em uma tela.</value>
+    <value>em uma tela</value>
   </data>
   <data name="Cp.Lede" xml:space="preserve">
     <value>Energia, recursos, console, mods e arquivos em uma única interface. Experimente - os controles abaixo movem estado real de componente sobre dados ilustrativos.</value>
@@ -298,7 +298,7 @@
     <value>Mundos pousam em</value>
   </data>
   <data name="Nodes.Accent" xml:space="preserve">
-    <value>metal de verdade.</value>
+    <value>metal de verdade</value>
   </data>
   <data name="Nodes.Lede" xml:space="preserve">
     <value>As instâncias são colocadas em nós com folga de sobra, e sua alocação é reservada antes de um único arquivo ser gravado.</value>
@@ -328,7 +328,7 @@
     <value>Antes de</value>
   </data>
   <data name="Faq.Accent" xml:space="preserve">
-    <value>comprometer um mundo.</value>
+    <value>comprometer um mundo</value>
   </data>
   <data name="Faq.Note" xml:space="preserve">
     <value>Ainda decidindo se a plataforma serve para a sua comunidade? Comece por aqui e depois fale com a gente sobre o que não estiver coberto.</value>
@@ -343,7 +343,7 @@
     <value>Traga sua comunidade</value>
   </data>
   <data name="Closing.Accent" xml:space="preserve">
-    <value>para Knox County.</value>
+    <value>para Knox County</value>
   </data>
   <data name="Closing.Lede" xml:space="preserve">
     <value>Estamos recebendo os primeiros mundos de Project Zomboid agora. Conte como o seu grupo joga e a gente coloca um no ar.</value>
@@ -358,7 +358,7 @@
     <value>LINHA DIRETA</value>
   </data>
   <data name="Closing.ContactTitle" xml:space="preserve">
-    <value>Fale com quem está construindo.</value>
+    <value>Fale com quem está construindo</value>
   </data>
   <data name="Closing.ContactCopy" xml:space="preserve">
     <value>Descreva sua comunidade - quantos jogadores, o quanto vocês usam mods, como gostam de jogar - e a gente encaixa no plano certo, ou orça uma configuração que não está na lista.</value>
@@ -469,7 +469,7 @@
     <value>WORKSHOP</value>
   </data>
   <data name="Cap01.Headline" xml:space="preserve">
-    <value>82 mods? Ótimo.</value>
+    <value>82 mods? Ótimo</value>
   </data>
   <data name="Cap01.Body" xml:space="preserve">
     <value>Uma coleção grande do Workshop não deveria transformar a configuração do servidor em um segundo emprego. Cole uma coleção e a plataforma resolve a lista de itens, escreve os identificadores de mod e do Workshop na ordem certa e mantém tudo em sincronia toda vez que você muda alguma coisa.</value>
@@ -490,7 +490,7 @@
     <value>PERSISTÊNCIA</value>
   </data>
   <data name="Cap02.Headline" xml:space="preserve">
-    <value>Seu mundo sobrevive ao servidor.</value>
+    <value>Seu mundo sobrevive ao servidor</value>
   </data>
   <data name="Cap02.Body" xml:space="preserve">
     <value>Estado do mapa, abrigos e loot ficam em armazenamento que sobrevive a reinícios, mudanças de versão e reconstruções da instância por baixo dele. Reverter um mod não significa reverter sua comunidade.</value>
@@ -511,7 +511,7 @@
     <value>CONTROLE</value>
   </data>
   <data name="Cap03.Headline" xml:space="preserve">
-    <value>Todos os controles, nenhum FTP.</value>
+    <value>Todos os controles, nenhum FTP</value>
   </data>
   <data name="Cap03.Body" xml:space="preserve">
     <value>Regras de sandbox, configuração INI, permissões de jogador e o console ao vivo ficam todos em um painel só. As coisas pelas quais você normalmente abriria um chamado viram botões.</value>
@@ -532,7 +532,7 @@
     <value>BUILD 42</value>
   </data>
   <data name="Cap04.Headline" xml:space="preserve">
-    <value>Versionado, não congelado.</value>
+    <value>Versionado, não congelado</value>
   </data>
   <data name="Cap04.Body" xml:space="preserve">
     <value>As builds do servidor são tratadas como ambientes configuráveis em vez de uma versão fixa, então uma instância pode acompanhar a build que a sua comunidade realmente joga. Vamos publicar exatamente quais builds poderão ser escolhidas no lançamento.</value>
@@ -715,7 +715,7 @@
     <value>PLANOS</value>
   </data>
   <data name="PlansTeaser.Title" xml:space="preserve">
-    <value>Oito planos, uma tabela de preços.</value>
+    <value>Oito planos, uma tabela de preços</value>
   </data>
   <data name="PlansTeaser.Lede" xml:space="preserve">
     <value>Os planos de Project Zomboid vão de 4 GB a 16 GB, e todo preço neles é a mesma tabela de três taxas aplicada ao que o plano entrega. Eles têm uma página só deles.</value>
@@ -814,7 +814,7 @@
     <value>SOFTWARE NOSSO</value>
   </data>
   <data name="Bot.Title" xml:space="preserve">
-    <value>Um servidor que se observa.</value>
+    <value>Um servidor que se observa</value>
   </data>
   <data name="Bot.Lede" xml:space="preserve">
     <value>Servidores configurados com mais de 5 GB de memória podem rodar o nosso próprio bot de gerenciamento no lado do servidor, feito aqui e não comprado pronto. Ele fica ao lado do mundo e existe para ajudar a segurar o desempenho conforme jogadores, mods e estado salvo se acumulam.</value>

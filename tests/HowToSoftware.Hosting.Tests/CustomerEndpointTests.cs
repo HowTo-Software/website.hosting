@@ -13,8 +13,13 @@ public sealed class CustomerEndpointTests : IDisposable
 {
     private readonly AccessFake _access = new();
     private readonly WorkspaceFake _workspace = new();
-    private WebApplicationFactory<Program> Factory(string environment = "Development") =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    private WebApplicationFactory<Program> Factory(string environment = "Development")
+    {
+        var factory = new WebApplicationFactory<Program>();
+        // The root owns factories returned by WithWebHostBuilder, including their clients.
+        // Track that owner rather than leaving it behind while tracking only the child.
+        _factories.Add(factory);
+        return factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment(environment);
             builder.UseSetting("SQLSERVER_CONNECTION_STRING", "REPLACE_ME");
@@ -32,10 +37,11 @@ public sealed class CustomerEndpointTests : IDisposable
                 s.RemoveAll<ICustomerWorkspace>(); s.AddSingleton<ICustomerWorkspace>(_workspace);
             });
         });
+    }
     private readonly List<WebApplicationFactory<Program>> _factories = [];
     private HttpClient Client(string environment = "Development")
     {
-        var factory = Factory(environment); _factories.Add(factory);
+        var factory = Factory(environment);
         var client = factory.CreateClient(new() { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
         client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en");
         return client;
@@ -132,9 +138,9 @@ public sealed class CustomerEndpointTests : IDisposable
         var csrf = await Csrf(client);
         foreach (var provider in new[] { "discord", "active-directory", "unknown" })
         {
-            using var loginContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            using var externalLoginContent = new FormUrlEncodedContent(new Dictionary<string, string>
             { ["Provider"] = provider, ["__RequestVerificationToken"] = csrf });
-            using var login = await client.PostAsync("/account/access/external", loginContent);
+            using var login = await client.PostAsync("/account/access/external", externalLoginContent);
             Assert.Equal(HttpStatusCode.NotFound, login.StatusCode);
         }
         using var callback = await client.GetAsync("/account/connections/callback/discord?code=forged&state=forged");
@@ -162,15 +168,6 @@ public sealed class CustomerEndpointTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(0, _access.Confirmations);
     }
-    public void Dispose()
-    {
-        foreach (var factory in _factories)
-        {
-            factory.Dispose();
-        }
-
-        _factories.Clear();
-    }
     private sealed class AccessFake : ICustomerAccess
     {
         public const string Challenge = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -189,5 +186,14 @@ public sealed class CustomerEndpointTests : IDisposable
         public Task<CustomerWorkspaceView> LoadAsync(string owner, string tab, CancellationToken ct) { Loads++; Owner = owner; return Task.FromResult(CustomerWorkspaceView.Empty); }
         public Task<bool> SupportAsync(string owner, string subject, string message, string locale, CancellationToken ct) { SupportCalls++; Owner = owner; return Task.FromResult(true); }
         public Task DeliverPendingAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+    public void Dispose()
+    {
+        foreach (var factory in _factories)
+        {
+            factory.Dispose();
+        }
+
+        _factories.Clear();
     }
 }

@@ -1,4 +1,5 @@
 using HowToSoftware.Hosting.Models;
+using Microsoft.Extensions.Options;
 
 namespace HowToSoftware.Hosting.Services.Payments;
 
@@ -32,7 +33,7 @@ public interface IOrderPricingService
     /// The priced plan, or <see langword="null"/> when the game is unknown or not on sale, the
     /// plan is unknown or does not belong to the game, or the plan has no configured price.
     /// </returns>
-    PricedPlan? Price(string? gameSlug, string? planSlug, BillingPeriod period);
+    PricedPlan? Price(string? gameSlug, string? planSlug, BillingPeriod period, string? currency = null);
 }
 
 /// <summary>
@@ -42,17 +43,21 @@ public sealed class OrderPricingService : IOrderPricingService
 {
     private readonly IGameCatalogService _games;
     private readonly IPlanCatalogService _plans;
+    private readonly StorefrontCurrencyService _currencies;
 
     /// <summary>Creates the service.</summary>
-    public OrderPricingService(IGameCatalogService games, IPlanCatalogService plans)
+    public OrderPricingService(IGameCatalogService games, IPlanCatalogService plans, StorefrontCurrencyService? currencies = null)
     {
         _games = games;
         _plans = plans;
+        _currencies = currencies ?? new StorefrontCurrencyService(Options.Create(new HostingPlanPricingOptions()));
     }
 
     /// <inheritdoc />
-    public PricedPlan? Price(string? gameSlug, string? planSlug, BillingPeriod period)
+    public PricedPlan? Price(string? gameSlug, string? planSlug, BillingPeriod period, string? currency = null)
     {
+        if (!StorefrontCurrencyService.TryNormalize(currency ?? _plans.CurrencyCode, out var selected)
+            || !string.Equals(_plans.CurrencyCode, "usd", StringComparison.OrdinalIgnoreCase)) return null;
         var game = _games.Find(gameSlug);
 
         if (game is null || !game.IsAvailable || game.TemplateId is null)
@@ -75,7 +80,7 @@ public sealed class OrderPricingService : IOrderPricingService
             return null;
         }
 
-        return new PricedPlan(game, plan, quote, _plans.CurrencyCode);
+        return new PricedPlan(game, plan, _currencies.ConvertQuote(quote, selected), selected);
     }
 }
 

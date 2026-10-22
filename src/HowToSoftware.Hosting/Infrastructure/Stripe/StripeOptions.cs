@@ -24,6 +24,9 @@ public sealed class StripeOptions
     /// <summary>Configuration section name.</summary>
     public const string SectionName = "Stripe";
 
+    /// <summary>Pix Automático requires explicit activation after account-capability and staging validation.</summary>
+    public StripePixSubscriptionsOptions PixSubscriptions { get; set; } = new();
+
     /// <summary>
     /// The publishable key (<c>pk_…</c>). Safe for a browser, but the site does not currently
     /// use Stripe.js, so it is held only for the day it does.
@@ -74,10 +77,15 @@ public sealed class StripeOptions
         && WebhookSecret.StartsWith("whsec_", StringComparison.Ordinal);
 
     /// <summary>Looks up a configured Price id for a plan and period.</summary>
-    public string? FindPriceId(string planSlug, string periodSlug) =>
-        PriceIds.TryGetValue($"{planSlug}:{periodSlug}", out var id) && !string.IsNullOrWhiteSpace(id)
-            ? id.Trim()
-            : null;
+    public string? FindPriceId(string planSlug, string periodSlug, string currency = "usd")
+    {
+        if (!Services.StorefrontCurrencyService.TryNormalize(currency, out var selected)) return null;
+        if (PriceIds.TryGetValue($"{planSlug}:{periodSlug}:{selected}", out var id) && !string.IsNullOrWhiteSpace(id))
+            return id.Trim();
+        // Old unqualified keys always mean USD, never a price reusable across currencies.
+        return selected == "usd" && PriceIds.TryGetValue($"{planSlug}:{periodSlug}", out id) && !string.IsNullOrWhiteSpace(id)
+            ? id.Trim() : null;
+    }
 
     /// <summary>
     /// Describes the secret key without revealing it: its prefix and length only.
@@ -118,6 +126,14 @@ public sealed class StripeOptionsValidator : IValidateOptions<StripeOptions>
     public ValidateOptionsResult Validate(string? name, StripeOptions options)
     {
         var failures = new List<string>();
+
+        if (options.PixSubscriptions.Enabled)
+        {
+            if (!StripePixSubscriptionsOptions.IsEligibleAccountCountry(options.PixSubscriptions.AccountCountry))
+                failures.Add("Stripe:PixSubscriptions:AccountCountry must identify an eligible non-Brazilian Stripe account; Brazilian accounts cannot use Pix subscriptions.");
+            if (options.PixSubscriptions.AmountIncludesIof is not ("always" or "never"))
+                failures.Add("Stripe:PixSubscriptions:AmountIncludesIof must explicitly be always (merchant absorbs IOF) or never (customer pays IOF).");
+        }
 
         if (!string.IsNullOrWhiteSpace(options.SecretKey)
             && !options.SecretKey.StartsWith("sk_", StringComparison.Ordinal)
@@ -163,6 +179,23 @@ public sealed class StripeOptionsValidator : IValidateOptions<StripeOptions>
         && string.IsNullOrEmpty(uri.UserInfo)
         && (uri.Scheme == Uri.UriSchemeHttps
             || (uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback));
+}
+
+/// <summary>Operational opt-in, not proof that Stripe has enabled the account capability.</summary>
+public sealed class StripePixSubscriptionsOptions
+{
+    public bool Enabled { get; set; }
+    public string AccountCountry { get; set; } = string.Empty;
+    public string AmountIncludesIof { get; set; } = string.Empty;
+
+    // Stripe's published eligible business countries, excluding BR (one-time Pix only).
+    private static readonly HashSet<string> EligibleCountries = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AT", "AU", "BE", "BG", "CA", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
+        "GB", "GR", "HR", "HU", "IE", "IT", "LI", "LT", "LU", "LV", "MT", "NL", "NO", "PL",
+        "PT", "RO", "SE", "SG", "SI", "SK", "US"
+    };
+    public static bool IsEligibleAccountCountry(string? country) => country is not null && EligibleCountries.Contains(country);
 }
 
 // =============================================================

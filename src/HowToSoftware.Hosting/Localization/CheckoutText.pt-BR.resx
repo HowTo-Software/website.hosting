@@ -22,7 +22,7 @@
     <value>Hospedagem de jogos</value>
   </data>
   <data name="GameHosting.Title" xml:space="preserve">
-    <value>Escolha o jogo. Crie o seu servidor.</value>
+    <value>Escolha o jogo. Crie o seu servidor</value>
   </data>
   <data name="GameHosting.Lede" xml:space="preserve">
     <value>Hardware próprio, painel HTS e configuração automática. Comece pelo jogo, compare os recursos e escolha o plano para a sua comunidade.</value>
@@ -67,7 +67,7 @@
     <value>Outro jogo</value>
   </data>
   <data name="GameHosting.RequestTitle" xml:space="preserve">
-    <value>Não está na lista? Peça.</value>
+    <value>Não está na lista? Peça</value>
   </data>
   <data name="GameHosting.RequestBody" xml:space="preserve">
     <value>Se tem servidor dedicado e roda em contêiner, a gente avalia. Escreva com o jogo e o número de jogadores que você espera.</value>
@@ -130,7 +130,7 @@
     <value>Hospedagem de jogos</value>
   </data>
   <data name="Zomboid.Title" xml:space="preserve">
-    <value>Seu mundo. Seu servidor de Project Zomboid.</value>
+    <value>Seu mundo. Seu servidor de Project Zomboid</value>
   </data>
   <data name="Zomboid.Lede" xml:space="preserve">
     <value>Escolha os recursos para a sua comunidade. Mods do Workshop, console e acesso aos arquivos em todos os planos, com controle pelo painel HTS.</value>
@@ -160,7 +160,7 @@
     <value>O que todo servidor tem</value>
   </data>
   <data name="Zomboid.FeatureTitle" xml:space="preserve">
-    <value>A mesma plataforma em todos os planos.</value>
+    <value>A mesma plataforma em todos os planos</value>
   </data>
   <data name="Zomboid.Feature.Build42" xml:space="preserve">
     <value>Build 41 e 42</value>
@@ -223,7 +223,7 @@
     <value>Teste por 24 horas</value>
   </data>
   <data name="Trial.Title" xml:space="preserve">
-    <value>Seu mundo. Seu servidor. Teste por 24 horas.</value>
+    <value>Seu mundo. Seu servidor. Teste por 24 horas</value>
   </data>
   <data name="Trial.Body" xml:space="preserve">
     <value>Crie um teste de Project Zomboid ou Minecraft na HTS. Confirme seu email, explore o painel e mantenha o mesmo mundo ao escolher um plano.</value>
@@ -238,7 +238,7 @@
     <value>Planos</value>
   </data>
   <data name="Picker.Title" xml:space="preserve">
-    <value>Os recursos certos para o seu mundo.</value>
+    <value>Os recursos certos para o seu mundo</value>
   </data>
   <data name="Picker.Lede" xml:space="preserve">
     <value>{2} planos, de {0} a {1} GB de RAM. Compare os recursos e escolha a cobrança mensal, trimestral ou anual.</value>
@@ -448,13 +448,13 @@
     <value>Confirmando seu pagamento</value>
   </data>
   <data name="Success.TitlePaid" xml:space="preserve">
-    <value>Pagamento confirmado. Montando seu servidor.</value>
+    <value>Pagamento confirmado. Montando seu servidor</value>
   </data>
   <data name="Success.TitleActive" xml:space="preserve">
-    <value>Seu servidor está online.</value>
+    <value>Seu servidor está online</value>
   </data>
   <data name="Success.TitleFailed" xml:space="preserve">
-    <value>Algo precisa de atenção.</value>
+    <value>Algo precisa de atenção</value>
   </data>
   <data name="Success.TitleUnknown" xml:space="preserve">
     <value>Nenhum pedido para este link</value>
@@ -523,7 +523,7 @@
     <value>Checkout</value>
   </data>
   <data name="Cancel.Title" xml:space="preserve">
-    <value>Pagamento cancelado.</value>
+    <value>Pagamento cancelado</value>
   </data>
   <data name="Cancel.Lede" xml:space="preserve">
     <value>Nada foi cobrado. Sua configuração está guardada nesta página - retome de onde parou, ou mude o período de cobrança.</value>
@@ -546,7 +546,7 @@
     <value>horas</value>
   </data>
   <data name="Trial.Page.Title" xml:space="preserve">
-    <value>Comece com seu servidor de teste.</value>
+    <value>Comece com seu servidor de teste</value>
   </data>
   <data name="Trial.Page.Lede" xml:space="preserve">
     <value>Jogue por {0} horas na infraestrutura HTS. Depois do teste, seu servidor é suspenso e seu mundo fica guardado por {1} dias para você escolher um plano.</value>
@@ -576,7 +576,7 @@
     <value>Um teste por conta do painel, válido para todos os jogos. O período começa ao terminar a instalação. Se não contratar um plano em até {0} dias após o fim do teste, o servidor e seus dados serão excluídos.</value>
   </data>
   <data name="Trial.Select.Title" xml:space="preserve">
-    <value>Escolha seu jogo.</value>
+    <value>Escolha seu jogo</value>
   </data>
   <data name="Trial.Select.Game" xml:space="preserve">
     <value>Jogo do teste</value>
@@ -618,7 +618,7 @@
     <value>Confirmação de email</value>
   </data>
   <data name="Trial.Verify.Title" xml:space="preserve">
-    <value>Confirme para continuar.</value>
+    <value>Confirme para continuar</value>
   </data>
   <data name="Trial.Verify.Body" xml:space="preserve">
     <value>Confirme que o email é seu para ativar o teste ou recuperar o acesso ao servidor existente. Só abrir esta página não cria um servidor.</value>
@@ -809,4 +809,10 @@ Dúvidas: {1}</value>
   <data name="Review.TrialUpgradePending" xml:space="preserve">
     <value>Já existe um checkout em andamento para este teste. Conclua o pagamento ou aguarde a expiração antes de tentar novamente.</value>
   </data>
+  <data name="Currency.Label" xml:space="preserve"><value>Moeda da cobrança</value></data>
+  <data name="Currency.usd" xml:space="preserve"><value>USD · dólar americano</value></data>
+  <data name="Currency.brl" xml:space="preserve"><value>BRL · real brasileiro</value></data>
+  <data name="Currency.Charge" xml:space="preserve"><value>O preço deste plano é {0}. A Stripe cobrará em {1}.</value></data>
+  <data name="Currency.BrlNote" xml:space="preserve"><value>Os preços em BRL usam a cotação fixa de US$ 1 = {0}.</value></data>
+  <data name="Review.BasePeriod" xml:space="preserve"><value>Preço-base de {0} meses, convertido para BRL</value></data>
 </root>

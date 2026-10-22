@@ -35,6 +35,19 @@ An authenticated billing portal, invoice downloads, administrative controls, and
 
 Configure trials with [TRIAL-SERVERS.md](docs/TRIAL-SERVERS.md). Defaults for both games are 6 GiB RAM, 25 GiB disk and CPU 0 (unlimited shared CPU). Minecraft selection is limited to operator-approved Java/Bedrock profiles, variants and versions. Payment upgrades the existing server without reinstalling its world. Public promotions advertise only explicitly selected, currently valid database coupons.
 
+The [customer area](docs/CUSTOMER-AREA.md) at `/account` adds verified email access to services,
+Stripe invoice history/upcoming estimates, support requests and same-server subscription changes.
+Its additive commerce migration and feature flags must be configured before enabling it.
+
+[External identities](docs/EXTERNAL-IDENTITIES.md) adds dormant Discord link/login support
+without replacing email access. The on-premises Active Directory identity boundary is prepared;
+its AD FS/LDAPS transport adapter remains explicitly pending. All external-provider flags default off.
+
+[Regional pricing](docs/REGIONAL-PRICING.md) adds actual USD/BRL checkout at the fixed rate
+of USD 1 = BRL 6.50, with a Brazilian-browser default and explicit currency review. Pix
+subscription support uses the confirmed US account and HTS-paid IOF policy; it remains disabled
+pending Stripe capability and staging validation.
+
 ## Run a local preview
 
 Requirements: **.NET 10** SDK and Git. There is no required npm, React, or Tailwind step.

@@ -34,8 +34,27 @@ email delivery, server creation, suspension or deletion was performed to impleme
 7. After retention ends, an unpaid trial is deleted through the panel API. The permanent SQL
    entitlement record remains, so deletion does not permit another trial.
 
-The local account/login prototype remains separate: the owner capability is permission to
-inspect/upgrade this trial, not a general HTS login or an administrative panel credential.
+The [customer area](CUSTOMER-AREA.md) uses its own short-lived verified email session.
+The trial owner capability remains permission to inspect/upgrade this trial, not an administrative
+panel credential or automatic access to another customer's billing.
+
+## Trial experience and new-server credentials
+
+New trials use the exact name `24 Teste {DisplayName}`, normalized and bounded server-side.
+Their stable external ID still controls recovery/idempotence, not the display name.
+Each newly created Project Zomboid server receives its own cryptographically generated
+32-character `ADMIN_PASSWORD`. A static shared override is no longer necessary. Recovery of an
+already-created server never rotates its credentials; Minecraft eggs are unaffected.
+No password is returned to the website or written to logs. In the operator-owned PZ egg,
+verify that the ADMIN_PASSWORD variable has the intended user-viewable/editable permissions
+so the customer can manage permitted credentials in Pterodactyl. The application does not
+change global eggs or weaken panel variable permissions.
+
+The compact trial page distinguishes provisioning, installation, ready, expired and converted
+states. Installation is not advertised as live/online game telemetry. Panel resource/address
+details are displayed only when both the stored trial owner and stable external ID match.
+UTC `ExpiresAt` remains authoritative: the UI shows a countdown plus Brasília and US Eastern
+times, with ET/CT/MT/PT selection and automatic DST. Browser clock changes never extend the trial.
 
 ## Default limits and time windows
 

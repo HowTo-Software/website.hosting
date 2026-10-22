@@ -20,6 +20,7 @@
 @inject IStringLocalizer<CheckoutText> Text
 @inject IHttpContextAccessor HttpContextAccessor
 @inject ITrialService Trials
+@inject StorefrontCurrencyService Currencies
 
 <PageTitle>@Text["Review.MetaTitle"] | @Site.Value.Name</PageTitle>
 
@@ -59,6 +60,16 @@ else
                 <p class="review-lede">@Text["Review.Lede"]</p>
 
                 <div class="review-periods">
+                    <p class="hts-label periods-label">@Text["Currency.Label"]</p>
+                    <ul class="period-links review-currencies" aria-label="@Text["Currency.Label"]">
+                        @foreach (var currency in new[] { "usd", "brl" })
+                        {
+                            var selected = currency == priced.CurrencyCode;
+                            <li><a class="period-link @(selected ? "is-current" : null)"
+                                   href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, priced.Quote.Period, currency)"
+                                   aria-current="@(selected ? "true" : null)">@Text["Currency." + currency]</a></li>
+                        }
+                    </ul>
                     <p class="hts-label periods-label">@Text["Review.ChangePeriod"]</p>
                     <ul class="period-links">
                         @foreach (var other in Catalog.BillingOptions)
@@ -67,7 +78,7 @@ else
 
                             <li>
                                 <a class="period-link @(isCurrent ? "is-current" : null)"
-                                   href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, other.Period)"
+                                   href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, other.Period, priced.CurrencyCode)"
                                    aria-current="@(isCurrent ? "true" : null)">
                                     <span>@other.Label</span>
                                     @if (other.DiscountPercent > 0)
@@ -85,7 +96,13 @@ else
                     <AntiforgeryToken />
                     <input type="hidden" name="PlanSlug" value="@priced.Plan.Slug" />
                     <input type="hidden" name="Period" value="@BillingPolicy.Slug(priced.Quote.Period)" />
+                    <input type="hidden" name="Currency" value="@priced.CurrencyCode" />
                     <input type="hidden" name="TrialUpgrade" value="@(_trialUpgrade ? "true" : "false")" />
+                    <p class="review-note review-currency-note">@Text["Currency.Charge", Currencies.FormatAmount(priced.Quote.FinalAmount, priced.CurrencyCode), priced.CurrencyCode.ToUpperInvariant()]</p>
+                    @if (priced.CurrencyCode == "brl")
+                    {
+                        <p class="review-note">@Text["Currency.BrlNote", Currencies.FormatCatalogAmount(1m, "brl")]</p>
+                    }
                     @if (_trialUpgrade)
                     {
                         <p class="review-note">@Text["Review.TrialUpgrade"]</p>
@@ -144,7 +161,7 @@ else
                               Plan="priced.Plan"
                               Quote="priced.Quote"
                               PeriodLabel="@option.Label"
-                              CurrencySymbol="@Catalog.CurrencySymbol" />
+                              CurrencyCode="@priced.CurrencyCode" />
             </div>
         </div>
     </section>
@@ -155,6 +172,15 @@ else
     private string? _error;
     private bool _submitting;
     private bool _trialUpgrade;
+
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string BrowserCurrency { get; set; } = "usd";
+
+    [SupplyParameterFromQuery(Name = "currency")]
+    public string? CurrencyQuery { get; set; }
+
+    [SupplyParameterFromForm(FormName = "checkout", Name = "Currency")]
+    public string? CurrencyForm { get; set; }
 
     /// <summary>The game, from the route.</summary>
     [Parameter]
@@ -201,7 +227,7 @@ else
         // bar, and monthly is the answer that costs them nothing they did not expect.
         var period = BillingPolicy.TryParse(periodSlug, out var parsed) ? parsed : BillingPeriod.Monthly;
 
-        _priced = Pricing.Price(GameSlug, planSlug, period);
+        _priced = Pricing.Price(GameSlug, planSlug, period, CurrencyForm ?? CurrencyQuery ?? BrowserCurrency);
         if (HttpMethods.IsPost(HttpContextAccessor.HttpContext?.Request.Method ?? "GET"))
         {
             // A trial selected before its deadline remains an upgrade attempt on POST.
@@ -235,7 +261,8 @@ else
             Locale: CultureInfo.CurrentUICulture.Name,
             PromoCode: PromoCode,
             TrialAccessToken: _trialUpgrade ? TrialAccessCookie.Read(HttpContextAccessor.HttpContext) : null,
-            IsTrialUpgrade: _trialUpgrade);
+            IsTrialUpgrade: _trialUpgrade,
+            Currency: priced.CurrencyCode);
 
         var result = await Checkout.CreateCheckoutSessionAsync(request);
 

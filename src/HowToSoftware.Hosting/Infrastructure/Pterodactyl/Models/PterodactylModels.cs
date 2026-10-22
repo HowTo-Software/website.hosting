@@ -416,6 +416,10 @@ public sealed record PterodactylAllocation
 {
     [JsonPropertyName("id")]
     public int Id { get; init; }
+    [JsonPropertyName("ip")]
+    public string? Ip { get; init; }
+    [JsonPropertyName("port")]
+    public int Port { get; init; }
 }
 
 // =============================================================

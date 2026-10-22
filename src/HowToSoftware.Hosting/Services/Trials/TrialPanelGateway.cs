@@ -132,11 +132,12 @@ public sealed class TrialPanelGateway(
         {
             environment[key] = value;
         }
+        TrialServerIdentity.SetProjectZomboidPassword(request.GameSlug, environment);
         var limits = request.Limits;
         var payload = new CreateServerRequest
         {
             ExternalId = request.ExternalId,
-            Name = $"HTS {template.GameName} trial",
+            Name = TrialServerIdentity.ServerName(request.DisplayName),
             User = request.UserId,
             Egg = template.EggId,
             DockerImage = template.DockerImage ?? egg.DockerImage,
@@ -359,7 +360,11 @@ public sealed class TrialPanelGateway(
     private static TrialPanelServer DescribeServer(PterodactylServer server) => new(
         server.Id, server.Identifier, server.Uuid,
         server.Container?.Installed == 1 || server.Status is null or "suspended",
-        IsSuspended(server));
+        IsSuspended(server), server.Name,
+        server.Limits is { } limits ? new((int)limits.Memory, limits.Cpu, (int)limits.Disk) : null,
+        server.Relationships?.Allocations?.Items.FirstOrDefault(x => x.Id == server.Allocation)?.Ip,
+        server.Relationships?.Allocations?.Items.FirstOrDefault(x => x.Id == server.Allocation)?.Port,
+        server.User, server.ExternalId);
 
     private static void ValidateLimits(TrialResourceLimits limits)
     {

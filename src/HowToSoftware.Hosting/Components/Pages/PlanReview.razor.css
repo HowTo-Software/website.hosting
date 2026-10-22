@@ -237,6 +237,10 @@
     min-width: 0;
 }
 
+.review-currencies {
+    margin-bottom: .75rem;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .review-crumbs a:hover,
     .review-change:hover {

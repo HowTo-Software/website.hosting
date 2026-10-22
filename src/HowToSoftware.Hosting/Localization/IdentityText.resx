@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Connections.Title" xml:space="preserve"><value>Connected accounts</value></data>
+  <data name="Connections.Body" xml:space="preserve"><value>Connect an external identity to your existing HTS account. Email access remains available.</value></data>
+  <data name="Provider.active-directory" xml:space="preserve"><value>Company Active Directory</value></data>
+  <data name="Provider.discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="Connections.NotLinked" xml:space="preserve"><value>Not linked</value></data>
+  <data name="Connections.Disabled" xml:space="preserve"><value>Not enabled</value></data>
+  <data name="Connections.LinkedSince" xml:space="preserve"><value>Linked since {0} (UTC)</value></data>
+  <data name="Connections.Link" xml:space="preserve"><value>Link account</value></data>
+  <data name="Connections.Unlink" xml:space="preserve"><value>Unlink</value></data>
+  <data name="Connections.Safety" xml:space="preserve"><value>A linked identity does not grant staff roles, Discord roles or server access. External sign-in must be enabled separately.</value></data>
+  <data name="Return.Title" xml:space="preserve"><value>Return to your HTS account</value></data>
+  <data name="Return.Body" xml:space="preserve"><value>Continue in this browser to review the account and confirm. This step has not linked an account or signed you in yet.</value></data>
+  <data name="Return.Continue" xml:space="preserve"><value>Continue securely</value></data>
+  <data name="Confirm.LinkTitle" xml:space="preserve"><value>Confirm account linking</value></data>
+  <data name="Confirm.LoginTitle" xml:space="preserve"><value>Confirm external sign-in</value></data>
+  <data name="Confirm.LinkBody" xml:space="preserve"><value>Only confirm if this external account belongs to you. It will be associated with your currently signed-in HTS account.</value></data>
+  <data name="Confirm.LoginBody" xml:space="preserve"><value>Continue only if this is your external account. Sign-in works only when it is already linked to an HTS account.</value></data>
+  <data name="Confirm.Action" xml:space="preserve"><value>Confirm and continue</value></data>
+  <data name="Confirm.Cancel" xml:space="preserve"><value>Cancel and return</value></data>
+  <data name="Login.With" xml:space="preserve"><value>Continue with {0}</value></data>
+  <data name="Result.Failed" xml:space="preserve"><value>The connection could not be confirmed. Sign in by email and start again. Accounts are never merged automatically.</value></data>
+  <data name="Result.Complete" xml:space="preserve"><value>External identity confirmed.</value></data>
+  <data name="Result.Removed" xml:space="preserve"><value>Account unlinked. Email access remains available.</value></data>
+  <data name="Connections.DirectoryPending" xml:space="preserve"><value>Waiting for the company directory adapter.</value></data>
+  <data name="Connections.DiscordPrepared" xml:space="preserve"><value>Linking and sign-in are prepared for future activation.</value></data>
+</root>

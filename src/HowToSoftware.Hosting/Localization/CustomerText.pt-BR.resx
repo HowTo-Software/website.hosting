@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Trial.Suspended" xml:space="preserve"><value>Suspenso</value></data>
+  <data name="Trial.Installed" xml:space="preserve"><value>Instalação concluída. Confira no painel se o jogo está em execução.</value></data>
+  <data name="Trial.Installing" xml:space="preserve"><value>Instalação em andamento</value></data>
+  <data name="Trial.Unlimited" xml:space="preserve"><value>Alocação compartilhada sem limite</value></data>
+  <data name="Trial.Port" xml:space="preserve"><value>porta</value></data>
+  <data name="Trial.Remaining" xml:space="preserve"><value>Tempo restante do seu teste</value></data>
+  <data name="Trial.Ended" xml:space="preserve"><value>Teste encerrado</value></data>
+  <data name="Trial.ClockFallback" xml:space="preserve"><value>Confira o horário de término abaixo</value></data>
+  <data name="Trial.UsTime" xml:space="preserve"><value>Fuso horário dos Estados Unidos</value></data>
+  <data name="Trial.SentTitle" xml:space="preserve"><value>Confira sua caixa de entrada</value></data>
+  <data name="Trial.CheckSpam" xml:space="preserve"><value>Confira também a pasta de spam. O link expira e precisa ser confirmado antes da criação do servidor.</value></data>
+  <data name="Trial.BackToForm" xml:space="preserve"><value>Usar outro e-mail ou recuperar acesso</value></data>
+  <data name="Portal.Title" xml:space="preserve"><value>Sua conta HTS</value></data>
+  <data name="Portal.Subtitle" xml:space="preserve"><value>Sua hospedagem, suas cobranças e seu suporte em um só lugar</value></data>
+  <data name="Portal.Overview" xml:space="preserve"><value>Visão geral</value></data>
+  <data name="Portal.Services" xml:space="preserve"><value>Serviços</value></data>
+  <data name="Portal.Invoices" xml:space="preserve"><value>Faturas</value></data>
+  <data name="Portal.Plans" xml:space="preserve"><value>Gerenciar planos</value></data>
+  <data name="Portal.Support" xml:space="preserve"><value>Suporte</value></data>
+  <data name="Portal.Account" xml:space="preserve"><value>Conta</value></data>
+  <data name="Portal.Store" xml:space="preserve"><value>Voltar à loja</value></data>
+  <data name="Portal.SignOut" xml:space="preserve"><value>Sair</value></data>
+  <data name="Portal.SignIn" xml:space="preserve"><value>Entrar</value></data>
+  <data name="Portal.LoginTitle" xml:space="preserve"><value>Sua hospedagem, sob seu controle</value></data>
+  <data name="Portal.LoginBody" xml:space="preserve"><value>Informe o e-mail usado na compra. Enviaremos um link de uso único para acessar seus serviços e cobranças com segurança.</value></data>
+  <data name="Portal.Email" xml:space="preserve"><value>Endereço de e-mail</value></data>
+  <data name="Portal.SendLink" xml:space="preserve"><value>Enviar link seguro de acesso</value></data>
+  <data name="Portal.NoPassword" xml:space="preserve"><value>Sem senhas compartilhadas. O acesso é verificado por e-mail.</value></data>
+  <data name="Portal.Unavailable" xml:space="preserve"><value>O acesso seguro à conta ainda não está disponível nesta instalação. Entre em contato com o suporte HTS.</value></data>
+  <data name="Portal.ConfirmTitle" xml:space="preserve"><value>Confirme o acesso à sua conta HTS</value></data>
+  <data name="Portal.ConfirmBody" xml:space="preserve"><value>Continue para entrar. Abrir o link do e-mail não altera sua conta nem sua assinatura.</value></data>
+  <data name="Portal.Confirm" xml:space="preserve"><value>Acessar minha conta</value></data>
+  <data name="Portal.Sent" xml:space="preserve"><value>Se este e-mail tiver serviços vinculados, um link de acesso chegará em breve. Confira a pasta de spam.</value></data>
+  <data name="Portal.Invalid" xml:space="preserve"><value>Este link é inválido ou expirou. Solicite um novo link de acesso.</value></data>
+  <data name="Portal.Failed" xml:space="preserve"><value>Não foi possível confirmar o resultado final. Confira o status do serviço antes de tentar novamente ou entre em contato com o suporte.</value></data>
+  <data name="Portal.Success" xml:space="preserve"><value>Sua solicitação foi registrada. Confira o estado do serviço abaixo.</value></data>
+  <data name="Portal.Preview" xml:space="preserve"><value>Prévia local da interface — nenhuma conta de cliente conectada. Acesso, cobranças e alterações de plano exigem integrações configuradas.</value></data>
+  <data name="Portal.NoServices" xml:space="preserve"><value>Ainda não há serviços contratados vinculados a esta conta. Use o e-mail da compra ou explore os planos disponíveis.</value></data>
+  <data name="Portal.ActiveServices" xml:space="preserve"><value>Serviços contratados</value></data>
+  <data name="Portal.NextInvoice" xml:space="preserve"><value>Próxima fatura</value></data>
+  <data name="Portal.PaymentStatus" xml:space="preserve"><value>Situação das cobranças</value></data>
+  <data name="Portal.NoInvoices" xml:space="preserve"><value>Não há faturas disponíveis para esta conta.</value></data>
+  <data name="Portal.InvoiceHelp" xml:space="preserve"><value>Os valores, créditos e impostos das faturas são informados pelo Stripe.</value></data>
+  <data name="Portal.InvoiceNumber" xml:space="preserve"><value>Fatura</value></data>
+  <data name="Portal.Amount" xml:space="preserve"><value>Valor</value></data>
+  <data name="Portal.Status" xml:space="preserve"><value>Situação</value></data>
+  <data name="Portal.Date" xml:space="preserve"><value>Data</value></data>
+  <data name="Portal.OpenInvoice" xml:space="preserve"><value>Abrir fatura</value></data>
+  <data name="Portal.Download" xml:space="preserve"><value>Baixar PDF</value></data>
+  <data name="Portal.CurrentPlan" xml:space="preserve"><value>Plano atual</value></data>
+  <data name="Portal.FuturePlan" xml:space="preserve"><value>Plano agendado</value></data>
+  <data name="Portal.Renewal" xml:space="preserve"><value>Renovação</value></data>
+  <data name="Portal.OpenPanel" xml:space="preserve"><value>Abrir painel do jogo</value></data>
+  <data name="Portal.ServiceNotice" xml:space="preserve"><value>Instalado não significa online. Confira o estado de execução do jogo no painel.</value></data>
+  <data name="Portal.ChangePlan" xml:space="preserve"><value>Alterar plano</value></data>
+  <data name="Portal.ChoosePlan" xml:space="preserve"><value>Escolha um plano compatível</value></data>
+  <data name="Portal.PreviewChange" xml:space="preserve"><value>Ver prévia da alteração</value></data>
+  <data name="Portal.ConfirmChange" xml:space="preserve"><value>Confirmar alteração de plano</value></data>
+  <data name="Portal.DueNow" xml:space="preserve"><value>A pagar agora</value></data>
+  <data name="Portal.NewRecurring" xml:space="preserve"><value>Novo valor recorrente estimado</value></data>
+  <data name="Portal.Proration" xml:space="preserve"><value>A prévia vem do Stripe e inclui créditos, descontos, impostos e arredondamentos aplicáveis. O plano superior só é aplicado após a confirmação do pagamento.</value></data>
+  <data name="Portal.DowngradePolicy" xml:space="preserve"><value>O plano inferior começa na próxima renovação. Você mantém os recursos atuais até lá. Alterações de armazenamento são verificadas para proteger seus arquivos.</value></data>
+  <data name="Portal.IntervalPolicy" xml:space="preserve"><value>As alterações mantêm o mesmo período de cobrança. A troca entre mensal, trimestral e anual não está disponível aqui.</value></data>
+  <data name="Portal.CancelDowngrade" xml:space="preserve"><value>Cancelar redução agendada</value></data>
+  <data name="Portal.PayInvoice" xml:space="preserve"><value>Concluir pagamento com segurança</value></data>
+  <data name="Portal.NoChanges" xml:space="preserve"><value>Não há alterações de plano pendentes.</value></data>
+  <data name="Portal.BillingDisabled" xml:space="preserve"><value>As alterações de plano não estão habilitadas nesta instalação. Seu plano e sua cobrança atuais permanecem inalterados.</value></data>
+  <data name="Portal.NotAvailable" xml:space="preserve"><value>Indisponível</value></data>
+  <data name="Portal.Pending" xml:space="preserve"><value>Em processamento</value></data>
+  <data name="Portal.SupportTitle" xml:space="preserve"><value>Fale com quem cuida da sua hospedagem</value></data>
+  <data name="Portal.SupportBody" xml:space="preserve"><value>Descreva o problema e inclua a referência do serviço. Nunca envie senhas, chaves de API ou dados do cartão.</value></data>
+  <data name="Portal.SupportSubject" xml:space="preserve"><value>Assunto</value></data>
+  <data name="Portal.SupportMessage" xml:space="preserve"><value>Como podemos ajudar?</value></data>
+  <data name="Portal.SendTicket" xml:space="preserve"><value>Enviar solicitação de suporte</value></data>
+  <data name="Portal.TicketSent" xml:space="preserve"><value>Sua solicitação de suporte foi recebida.</value></data>
+  <data name="Portal.EmailSupport" xml:space="preserve"><value>Falar com o suporte por e-mail</value></data>
+  <data name="Portal.MyTickets" xml:space="preserve"><value>Minhas solicitações de suporte</value></data>
+  <data name="Portal.NoTickets" xml:space="preserve"><value>Você ainda não tem solicitações de suporte.</value></data>
+  <data name="Portal.VerifiedEmail" xml:space="preserve"><value>E-mail verificado</value></data>
+  <data name="Portal.SecurityBody" xml:space="preserve"><value>Sua sessão tem duração limitada e está vinculada a este e-mail verificado. Apenas os serviços e faturas vinculados a ele são exibidos.</value></data>
+  <data name="Portal.SmtpSubject" xml:space="preserve"><value>Seu acesso seguro à conta HTS</value></data>
+  <data name="Portal.SmtpBody" xml:space="preserve"><value>Use este link de uso único para acessar sua conta HTS. Ele expira em 15 minutos.
+
+{0}
+
+Se você não solicitou o acesso, ignore esta mensagem. Nenhuma conta ou assinatura foi alterada.</value></data>
+  <data name="Change.Quoted" xml:space="preserve"><value>Revise e confirme</value></data>
+  <data name="Change.Submitting" xml:space="preserve"><value>Enviando ao Stripe</value></data>
+  <data name="Change.AwaitingPayment" xml:space="preserve"><value>Aguardando confirmação de pagamento</value></data>
+  <data name="Change.Scheduled" xml:space="preserve"><value>Agendado para a renovação</value></data>
+  <data name="Change.Applying" xml:space="preserve"><value>Aplicando recursos ao servidor existente</value></data>
+  <data name="Change.Applied" xml:space="preserve"><value>Plano atualizado</value></data>
+  <data name="Change.Cancelled" xml:space="preserve"><value>Cancelado</value></data>
+  <data name="Change.Failed" xml:space="preserve"><value>Pagamento não concluído; plano atual mantido</value></data>
+  <data name="Change.Operational" xml:space="preserve"><value>Aguardando análise operacional; seus arquivos estão protegidos</value></data>
+  <data name="Portal.Estimate" xml:space="preserve"><value>Estimativa; impostos e créditos finais podem mudar até a renovação.</value></data>
+  <data name="Portal.CancelQuote" xml:space="preserve"><value>Descartar prévia</value></data>
+  <data name="Portal.History" xml:space="preserve"><value>Histórico de faturas</value></data>
+  <data name="Portal.Upcoming" xml:space="preserve"><value>Próximas faturas</value></data>
+  <data name="Portal.Reference" xml:space="preserve"><value>Referência do serviço</value></data>
+  <data name="Portal.BillingUnavailable" xml:space="preserve"><value>Não foi possível consultar as cobranças agora. Nenhuma cobrança foi realizada. Tente novamente em instantes.</value></data>
+  <data name="Portal.PreviewLink" xml:space="preserve"><value>Visualizar a área do cliente</value></data>
+  <data name="Portal.OpenRequest" xml:space="preserve"><value>Recebido; o suporte responderá por e-mail</value></data>
+  <data name="Portal.Resources" xml:space="preserve"><value>Recursos</value></data>
+  <data name="Portal.Period.monthly" xml:space="preserve"><value>Mensal</value></data>
+  <data name="Portal.Period.quarterly" xml:space="preserve"><value>Trimestral</value></data>
+  <data name="Portal.Period.annual" xml:space="preserve"><value>Anual</value></data>
+  <data name="Portal.Status.active" xml:space="preserve"><value>Assinatura ativa</value></data>
+  <data name="Portal.Status.trialing" xml:space="preserve"><value>Assinatura em teste</value></data>
+  <data name="Portal.Status.past_due" xml:space="preserve"><value>Pagamento em atraso</value></data>
+  <data name="Portal.Status.unpaid" xml:space="preserve"><value>Não paga</value></data>
+  <data name="Portal.Status.paid" xml:space="preserve"><value>Paga</value></data>
+  <data name="Portal.Status.open" xml:space="preserve"><value>Aguardando pagamento</value></data>
+  <data name="Portal.Status.draft" xml:space="preserve"><value>Rascunho</value></data>
+  <data name="Portal.Status.void" xml:space="preserve"><value>Anulada</value></data>
+  <data name="Portal.Status.uncollectible" xml:space="preserve"><value>Pagamento não recebido</value></data>
+  <data name="Portal.Status.canceled" xml:space="preserve"><value>Assinatura cancelada</value></data>
+  <data name="Portal.Status.incomplete" xml:space="preserve"><value>Aguardando primeiro pagamento</value></data>
+  <data name="Portal.Status.incomplete_expired" xml:space="preserve"><value>Primeiro pagamento expirado</value></data>
+  <data name="Portal.Status.paused" xml:space="preserve"><value>Pausada</value></data>
+  <data name="Portal.Result.quoted" xml:space="preserve"><value>Revise a prévia do Stripe e confirme abaixo.</value></data>
+  <data name="Portal.Result.disabled" xml:space="preserve"><value>As mudanças de plano não estão habilitadas aqui.</value></data>
+  <data name="Portal.Result.pending" xml:space="preserve"><value>Este serviço já possui uma mudança pendente. Confira abaixo.</value></data>
+  <data name="Portal.Result.interval" xml:space="preserve"><value>Somente mudanças dentro do mesmo período de cobrança são permitidas.</value></data>
+  <data name="Portal.Result.unpaid" xml:space="preserve"><value>Conclua o pagamento da fatura atual antes de mudar de plano.</value></data>
+  <data name="Portal.Result.capacity" xml:space="preserve"><value>O nó não tem capacidade para o plano selecionado agora. Entre em contato com o suporte.</value></data>
+  <data name="Portal.Result.expired" xml:space="preserve"><value>Esta prévia expirou. Solicite uma nova antes de confirmar.</value></data>
+  <data name="Portal.Result.stale" xml:space="preserve"><value>A cobrança mudou após esta prévia. Solicite uma prévia atualizada.</value></data>
+  <data name="Portal.Result.renewing" xml:space="preserve"><value>Uma renovação está começando. Aguarde alguns minutos e tente novamente.</value></data>
+  <data name="Trial.Zone.Eastern" xml:space="preserve"><value>Leste dos EUA (ET)</value></data>
+  <data name="Trial.Zone.Central" xml:space="preserve"><value>Central dos EUA (CT)</value></data>
+  <data name="Trial.Zone.Mountain" xml:space="preserve"><value>Montanhas dos EUA (MT)</value></data>
+  <data name="Trial.Zone.Pacific" xml:space="preserve"><value>Pacífico dos EUA (PT)</value></data>
+  <data name="Portal.Result.selection" xml:space="preserve"><value>O plano está indisponível ou não é compatível com o serviço selecionado.</value></data>
+  <data name="Portal.Result.payment-method" xml:space="preserve"><value>Alterações de planos com Pix exigem análise do suporte e uma autorização de pagamento compatível. Seu plano atual não foi alterado.</value></data>
+</root>

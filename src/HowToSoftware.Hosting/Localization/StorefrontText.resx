@@ -7,9 +7,9 @@
   <data name="Meta.Title" xml:space="preserve"><value>Game server hosting on HTS infrastructure</value></data>
   <data name="Meta.Description" xml:space="preserve"><value>Compare RAM, CPU allocation, storage and backups for your game server. See the infrastructure behind HTS hosting and choose your configuration.</value></data>
   <data name="Hero.Kicker" xml:space="preserve"><value>HTS / Game server hosting</value></data>
-  <data name="Hero.Line1" xml:space="preserve"><value>Game server hosting.</value></data>
-  <data name="Hero.Line2" xml:space="preserve"><value>Built on HTS infrastructure.</value></data>
-  <data name="Hero.Line3" xml:space="preserve"><value>We host it.</value></data>
+  <data name="Hero.Line1" xml:space="preserve"><value>Game server hosting</value></data>
+  <data name="Hero.Line2" xml:space="preserve"><value>Built on HTS infrastructure</value></data>
+  <data name="Hero.Line3" xml:space="preserve"><value>We host it</value></data>
   <data name="Hero.Copy" xml:space="preserve"><value>Your world, your mods and your community. Try the infrastructure for 24 hours, then choose the plan that fits your server.</value></data>
   <data name="Hero.Primary" xml:space="preserve"><value>Explore plans and pricing</value></data>
   <data name="Hero.Secondary" xml:space="preserve"><value>Meet the infrastructure</value></data>
@@ -44,7 +44,7 @@
   <data name="Games.NotifySubject" xml:space="preserve"><value>Let me know when {0} hosting is available</value></data>
   <data name="Games.RequestSubject" xml:space="preserve"><value>Hosting for my community</value></data>
   <data name="Plans.Kicker" xml:space="preserve"><value>The right space for your group</value></data>
-  <data name="Plans.Title" xml:space="preserve"><value>Room to start. Room to grow.</value></data>
+  <data name="Plans.Title" xml:space="preserve"><value>Room to start. Room to grow</value></data>
   <data name="Plans.Copy" xml:space="preserve"><value>Compare RAM, CPU allocation, storage and backups. Choose the resources that make sense for the world you want to build.</value></data>
   <data name="Plans.All" xml:space="preserve"><value>Compare all plans</value></data>
   <data name="Plans.Recommended" xml:space="preserve"><value>Recommended</value></data>
@@ -57,22 +57,22 @@
   <data name="Plans.Storage" xml:space="preserve"><value>NVMe</value></data>
   <data name="Plans.Backups" xml:space="preserve"><value>Backups</value></data>
   <data name="Features.Kicker" xml:space="preserve"><value>Less friction. More time in game.</value></data>
-  <data name="Features.Title" xml:space="preserve"><value>The tools your world needs.</value></data>
+  <data name="Features.Title" xml:space="preserve"><value>The tools your world needs</value></data>
   <data name="Features.Copy" xml:space="preserve"><value>World files and restore points, Workshop mods and resource controls. The tools for running your server, organized in one place.</value></data>
-  <data name="Features.WorldTitle" xml:space="preserve"><value>A world that stays yours.</value></data>
+  <data name="Features.WorldTitle" xml:space="preserve"><value>A world that stays yours</value></data>
   <data name="Features.WorldCopy" xml:space="preserve"><value>Manage world files and restore points from the panel. Backup capacity follows the plan you choose.</value></data>
-  <data name="Features.WorkshopTitle" xml:space="preserve"><value>Your mods, without the detour.</value></data>
+  <data name="Features.WorkshopTitle" xml:space="preserve"><value>Your mods, without the detour</value></data>
   <data name="Features.WorkshopCopy" xml:space="preserve"><value>Find Workshop mods and prepare your load order through the management tools, with changes applied on restart.</value></data>
-  <data name="Features.ProvisioningTitle" xml:space="preserve"><value>From a plan to your own server.</value></data>
+  <data name="Features.ProvisioningTitle" xml:space="preserve"><value>From a plan to your own server</value></data>
   <data name="Features.ProvisioningCopy" xml:space="preserve"><value>Choose your configuration, review the order and follow provisioning after payment. Each step has its place.</value></data>
-  <data name="Features.PanelTitle" xml:space="preserve"><value>Control, without losing the overview.</value></data>
+  <data name="Features.PanelTitle" xml:space="preserve"><value>Control, without losing the overview</value></data>
   <data name="Features.PanelCopy" xml:space="preserve"><value>Console, files and resource controls together. Explore the panel before choosing your server.</value></data>
   <data name="Features.Explore" xml:space="preserve"><value>Explore the panel</value></data>
   <data name="Features.WorldLabel" xml:space="preserve"><value>Your world</value></data>
   <data name="Features.BackupLabel" xml:space="preserve"><value>Restore points</value></data>
   <data name="Features.ControlLabel" xml:space="preserve"><value>Your control panel</value></data>
   <data name="Infrastructure.Kicker" xml:space="preserve"><value>Behind every world</value></data>
-  <data name="Infrastructure.Title" xml:space="preserve"><value>Real infrastructure. A closer look.</value></data>
+  <data name="Infrastructure.Title" xml:space="preserve"><value>Real infrastructure. A closer look</value></data>
   <data name="Infrastructure.Copy" xml:space="preserve"><value>See the HTS rack and the specifications of our machines. The capacity of each plan is listed separately, so you know what you are choosing.</value></data>
   <data name="Infrastructure.Link" xml:space="preserve"><value>Meet our infrastructure</value></data>
   <data name="Infrastructure.Image" xml:space="preserve"><value>The HTS rack and its installed servers</value></data>
@@ -82,7 +82,7 @@
   <data name="Infrastructure.SpecStorage" xml:space="preserve"><value>Storage</value></data>
   <data name="Infrastructure.SpecNetwork" xml:space="preserve"><value>Network</value></data>
   <data name="Closing.Kicker" xml:space="preserve"><value>Your next chapter starts here</value></data>
-  <data name="Closing.Title" xml:space="preserve"><value>Find the right configuration.</value></data>
+  <data name="Closing.Title" xml:space="preserve"><value>Find the right configuration</value></data>
   <data name="Closing.Copy" xml:space="preserve"><value>Compare the plans or talk to HTS about the resources your community needs.</value></data>
   <data name="Closing.Primary" xml:space="preserve"><value>Choose my server</value></data>
   <data name="Closing.Contact" xml:space="preserve"><value>Talk to HTS</value></data>

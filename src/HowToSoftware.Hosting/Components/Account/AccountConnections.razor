@@ -1,0 +1,51 @@
+@using HowToSoftware.Hosting.Services.Identity
+@inject IExternalIdentityService Identity
+@inject IOptions<ExternalIdentityOptions> Settings
+@inject IHttpContextAccessor Context
+@inject IStringLocalizer<IdentityText> Text
+
+<section class="account-connections" aria-labelledby="connections-heading">
+    <h2 id="connections-heading">@Text["Connections.Title"]</h2>
+    <p>@Text["Connections.Body"]</p>
+    @foreach (var provider in Providers)
+    {
+        var connection = _connections.SingleOrDefault(x => x.Provider == provider);
+        var enabled = Settings.Value.LinkingEnabled(provider);
+        <div class="account-connection">
+            <div>
+                <h3>@Text["Provider." + provider]</h3>
+                <p>@(connection is not null ? connection.DisplayName : Text[enabled ? "Connections.NotLinked"
+                    : provider == ExternalProviders.Directory ? "Connections.DirectoryPending" : "Connections.DiscordPrepared"].Value)</p>
+                @if (connection is not null) { <span>@Text["Connections.LinkedSince", connection.LinkedAt.UtcDateTime.ToString("d", System.Globalization.CultureInfo.CurrentUICulture)]</span> }
+            </div>
+            @if (connection is not null && !Preview)
+            {
+                <form method="post" action="/account/connections/unlink" data-enhance="false">
+                    <AntiforgeryToken /><input type="hidden" name="Provider" value="@provider" />
+                    <button type="submit">@Text["Connections.Unlink"]</button>
+                </form>
+            }
+            else if (enabled && !Preview)
+            {
+                <form method="post" action="/account/connections/start" data-enhance="false">
+                    <AntiforgeryToken /><input type="hidden" name="Provider" value="@provider" />
+                    <button type="submit">@Text["Connections.Link"]</button>
+                </form>
+            }
+            else { <span class="account-connection__inactive">@Text["Connections.Disabled"]</span> }
+        </div>
+    }
+    <p class="account-connections__note">@Text["Connections.Safety"]</p>
+</section>
+
+@code {
+    [Parameter] public bool Preview { get; set; }
+    private static readonly string[] Providers = [ExternalProviders.Directory, ExternalProviders.Discord];
+    private IReadOnlyList<ExternalConnection> _connections = [];
+    protected override async Task OnParametersSetAsync()
+    {
+        _connections = [];
+        if (!Preview && Context.HttpContext is { } context)
+            _connections = await Identity.ConnectionsAsync(CustomerSessionCookie.Read(context), context.RequestAborted);
+    }
+}

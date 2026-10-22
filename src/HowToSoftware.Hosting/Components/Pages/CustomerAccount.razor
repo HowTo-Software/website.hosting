@@ -1,0 +1,280 @@
+@page "/account"
+@using System.Globalization
+@using HowToSoftware.Hosting.Models.Commerce
+@using HowToSoftware.Hosting.Services.Subscriptions
+@using HowToSoftware.Hosting.Services.Identity
+@inject IExternalIdentityService ExternalIdentity
+@inject IOptions<ExternalIdentityOptions> ExternalSettings
+@inject IStringLocalizer<IdentityText> IdentityText
+@inject ICustomerAccess Access
+@inject ICustomerWorkspace Workspace
+@inject IStringLocalizer<CustomerText> Text
+@inject IHttpContextAccessor Context
+@inject IWebHostEnvironment Environment
+@inject IOptions<CustomerAreaOptions> Settings
+@inject IOptions<SubscriptionManagementOptions> Management
+@inject IOptions<SiteOptions> Site
+
+<PageTitle>@Text["Portal.Title"] | HTS</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /><meta name="referrer" content="no-referrer" /></HeadContent>
+
+<section class="customer-area hts-container hts-container--wide" aria-labelledby="customer-heading">
+    @if (_externalFlow is { } flow)
+    {
+        <div class="customer-access">
+            <div>
+                <h1 id="customer-heading">@IdentityText[flow.Purpose == "link" ? "Confirm.LinkTitle" : "Confirm.LoginTitle"]</h1>
+                <p>@IdentityText["Provider." + flow.Provider]: <strong>@flow.DisplayName</strong></p>
+                <p>@IdentityText[flow.Purpose == "link" ? "Confirm.LinkBody" : "Confirm.LoginBody"]</p>
+            </div>
+            <div class="customer-access__form">
+                <form method="post" action="/account/connections/confirm" data-enhance="false">
+                    <AntiforgeryToken /><input type="hidden" name="FlowId" value="@flow.Id" />
+                    <button class="customer-button" type="submit">@IdentityText["Confirm.Action"]</button>
+                </form>
+                <a href="/account">@IdentityText["Confirm.Cancel"]</a>
+            </div>
+        </div>
+    }
+    else if (Verify is { Length: > 0 and <= 128 })
+    {
+        <div class="customer-access">
+            <div><a href="/account">@Text["Portal.Store"]</a><h1 id="customer-heading">@Text["Portal.ConfirmTitle"]</h1><p>@Text["Portal.ConfirmBody"]</p></div>
+            <form method="post" action="/account/access/confirm" data-enhance="false">
+                <AntiforgeryToken /><input type="hidden" name="Token" value="@Verify" />
+                <button class="customer-button" type="submit" disabled="@(!Access.Enabled)">@Text["Portal.Confirm"]</button>
+            </form>
+        </div>
+    }
+    else if (_owner is null && !_preview)
+    {
+        <div class="customer-access">
+            <div>
+                <a href="/">@Text["Portal.Store"]</a>
+                <h1 id="customer-heading">@Text["Portal.LoginTitle"]</h1>
+                <p>@Text["Portal.LoginBody"]</p>
+                <ul class="customer-access__benefits">
+                    <li>@Text["Portal.Services"]</li><li>@Text["Portal.Invoices"]</li><li>@Text["Portal.Plans"]</li><li>@Text["Portal.Support"]</li>
+                </ul>
+            </div>
+            <div class="customer-access__form">
+                @if (NoticeText is { } notice) { <p class="customer-notice" role="status">@notice</p> }
+                @if (!Access.Enabled) { <p class="customer-notice">@Text["Portal.Unavailable"]</p> }
+                <form method="post" action="/account/access/request" data-enhance="false">
+                    <AntiforgeryToken />
+                    <label for="customer-email">@Text["Portal.Email"]</label>
+                    <input id="customer-email" type="email" name="Email" required maxlength="254" autocomplete="email" disabled="@(!Access.Enabled)" />
+                    <button class="customer-button" type="submit" disabled="@(!Access.Enabled)">@Text["Portal.SendLink"]</button>
+                </form>
+                <p class="customer-help">@Text["Portal.NoPassword"]</p>
+                @foreach (var provider in LoginProviders)
+                {
+                    <form method="post" action="/account/access/external" data-enhance="false">
+                        <AntiforgeryToken /><input type="hidden" name="Provider" value="@provider" />
+                        <button class="customer-button customer-button--quiet" type="submit">@IdentityText["Login.With", IdentityText["Provider." + provider].Value]</button>
+                    </form>
+                }
+                <a href="@("mailto:" + Site.Value.ContactEmail)">@Text["Portal.EmailSupport"]</a>
+                @if (Environment.IsDevelopment() && Settings.Value.PreviewEnabled)
+                { <a class="customer-preview-link" href="/account?preview=true">@Text["Portal.PreviewLink"]</a> }
+            </div>
+        </div>
+    }
+    else
+    {
+        <header class="customer-heading">
+            <div><h1 id="customer-heading">@Text["Portal.Title"]</h1><p>@(_owner ?? Text["Portal.Subtitle"].Value)</p></div>
+            @if (!_preview)
+            {
+                <form method="post" action="/account/logout" data-enhance="false"><AntiforgeryToken /><button type="submit" class="customer-button customer-button--quiet">@Text["Portal.SignOut"]</button></form>
+            }
+            else { <a href="/account" class="customer-button customer-button--quiet">@Text["Portal.SignIn"]</a> }
+        </header>
+        <nav class="customer-nav" aria-label="@Text["Portal.Title"]">
+            @foreach (var item in Tabs)
+            { <a href="@TabUrl(item)" aria-current="@(Tab == item ? "page" : null)">@Text["Portal." + TabKey(item)]</a> }
+        </nav>
+        @if (_preview) { <p class="customer-notice" role="status">@Text["Portal.Preview"]</p> }
+        @if (NoticeText is { } notice) { <p class="customer-notice" role="status">@notice</p> }
+        @if (_failed || _view.BillingUnavailable) { <p class="customer-notice" role="status">@Text["Portal.BillingUnavailable"]</p> }
+
+        @if (Tab == "overview")
+        {
+            <div class="customer-summary">
+                <div><span>@Text["Portal.ActiveServices"]</span><strong>@(_preview ? "—" : _view.Services.Count.ToString(CultureInfo.CurrentCulture))</strong></div>
+                <div><span>@Text["Portal.NextInvoice"]</span><strong>@NextInvoice</strong></div>
+                <div><span>@Text["Portal.MyTickets"]</span><strong>@(_preview ? "—" : _view.Tickets.Count.ToString(CultureInfo.CurrentCulture))</strong></div>
+            </div>
+        }
+        @if (Tab is "overview" or "services")
+        {
+            <div class="customer-section-title"><h2>@Text["Portal.Services"]</h2><a href="/game-hosting">@Text["Portal.ChoosePlan"]</a></div>
+            @if (_view.Services.Count == 0)
+            {
+                <div class="customer-empty"><p>@Text["Portal.NoServices"]</p><a href="/game-hosting">@Text["Portal.ChoosePlan"]</a></div>
+            }
+            @foreach (var entry in _view.Services)
+            {
+                <article class="customer-service">
+                    <header><div><span class="customer-help">@GameName(entry.Service.GameSlug)</span><h3>@entry.Service.Plan.Name</h3></div><span class="customer-status">@Status(entry.Status)</span></header>
+                    <dl class="customer-specs">
+                        <div><dt>RAM</dt><dd>@(entry.Service.Plan.RamMb / 1024m) GiB</dd></div>
+                        <div><dt>CPU</dt><dd>@Cpu(entry.Service.Plan.CpuPercent)</dd></div>
+                        <div><dt>@Text["Portal.Resources"]</dt><dd>@(entry.Service.Plan.DiskMb / 1024m) GiB SSD</dd></div>
+                        <div><dt>@Text["Portal.Renewal"]</dt><dd>@Date(entry.Renewal)</dd></div>
+                    </dl>
+                    <footer><p class="customer-help">@Text["Portal.Reference"]: @entry.Service.Id.ToString("N")[..12]</p><a class="customer-button customer-button--quiet" href="@TabUrl("plans")">@Text["Portal.ChangePlan"]</a><a href="@SiteRoutes.PanelLogin" target="_blank" rel="noopener noreferrer">@Text["Portal.OpenPanel"]</a></footer>
+                </article>
+            }
+        }
+        @if (Tab is "overview" or "invoices")
+        {
+            <div class="customer-section-title"><h2>@Text["Portal.Upcoming"]</h2><span class="customer-help">@Text["Portal.Estimate"]</span></div>
+            @if (_view.Upcoming.Count == 0) { <div class="customer-empty"><p>@Text["Portal.NoInvoices"]</p></div> }
+            @foreach (var invoice in _view.Upcoming)
+            { <div class="customer-upcoming"><span>@invoice.Plan</span><time>@Date(invoice.Date)</time><strong>@Money(invoice.Amount, invoice.Currency)</strong></div> }
+            @if (Tab == "invoices")
+            {
+                <div class="customer-section-title"><h2>@Text["Portal.History"]</h2></div>
+                <p class="customer-help">@Text["Portal.InvoiceHelp"]</p>
+                @if (_view.Invoices.Count == 0) { <div class="customer-empty"><p>@Text["Portal.NoInvoices"]</p></div> }
+                else
+                {
+                    <div class="customer-table-wrap"><table>
+                        <thead><tr><th>@Text["Portal.InvoiceNumber"]</th><th>@Text["Portal.Date"]</th><th>@Text["Portal.Amount"]</th><th>@Text["Portal.Status"]</th><th><span class="sr-only">@Text["Portal.OpenInvoice"]</span></th></tr></thead>
+                        <tbody>@foreach (var invoice in _view.Invoices)
+                        { <tr><td>@invoice.Number</td><td>@Date(invoice.Created)</td><td>@Money(invoice.Amount, invoice.Currency)</td><td>@Status(invoice.Status)</td><td>@if (invoice.Url is { } url) { <a href="@url" target="_blank" rel="noopener noreferrer">@Text["Portal.OpenInvoice"]</a> } @if (invoice.Pdf is { } pdf) { <a href="@pdf" target="_blank" rel="noopener noreferrer">@Text["Portal.Download"]</a> }</td></tr> }</tbody>
+                    </table></div>
+                }
+            }
+        }
+        @if (Tab == "plans")
+        {
+            <div class="customer-section-title"><h2>@Text["Portal.Plans"]</h2></div>
+            <p class="customer-help">@Text["Portal.IntervalPolicy"]</p>
+            @if (!Management.Value.Enabled) { <p class="customer-notice">@Text["Portal.BillingDisabled"]</p> }
+            @if (_view.Services.Count == 0) { <div class="customer-empty"><p>@Text["Portal.NoServices"]</p></div> }
+            @foreach (var entry in _view.Services)
+            {
+                <article class="customer-service">
+                    <header><div><span class="customer-help">@GameName(entry.Service.GameSlug)</span><h3>@entry.Service.Plan.Name</h3></div><span>@Text["Portal.Period." + entry.Service.BillingPeriod]</span></header>
+                    <p>@Text["Portal.CurrentPlan"]: @entry.Service.Plan.Name · @(entry.Service.Plan.RamMb / 1024m) GiB RAM · @(entry.Service.Plan.DiskMb / 1024m) GiB SSD</p>
+                    @if (entry.Change is { } change)
+                    {
+                        <div class="customer-change">
+                            <h4>@Text["Change." + change.State]</h4>
+                            <p>@Text["Portal.FuturePlan"]: @(change.MemoryMb / 1024m) GiB RAM · @Cpu(change.CpuPercent) CPU · @(change.DiskMb / 1024m) GiB SSD</p>
+                            <dl class="customer-specs"><div><dt>@Text["Portal.DueNow"]</dt><dd>@Money(change.DueNowMinor, change.Currency)</dd></div><div><dt>@Text["Portal.NewRecurring"]</dt><dd>@Money(change.NextInvoiceMinor, change.Currency)</dd></div><div><dt>@Text["Portal.Renewal"]</dt><dd>@Date(change.EffectiveAt.UtcDateTime)</dd></div></dl>
+                            <p class="customer-help">@Text[change.Direction == PlanChangeDirection.Upgrade ? "Portal.Proration" : "Portal.DowngradePolicy"]</p>
+                            @if (!_preview && entry.PaymentUrl is { } payment)
+                            { <a class="customer-button" href="@payment" target="_blank" rel="noopener noreferrer">@Text["Portal.PayInvoice"]</a> }
+                            @if (!_preview && change.State == PlanChangeState.Quoted)
+                            {
+                                <div class="customer-inline-actions">
+                                    <form method="post" action="/account/plans/confirm" data-enhance="false"><AntiforgeryToken /><input type="hidden" name="ChangeId" value="@change.Id" /><button class="customer-button" type="submit">@Text["Portal.ConfirmChange"]</button></form>
+                                    <form method="post" action="/account/plans/cancel" data-enhance="false"><AntiforgeryToken /><input type="hidden" name="ChangeId" value="@change.Id" /><button class="customer-button customer-button--quiet" type="submit">@Text["Portal.CancelQuote"]</button></form>
+                                </div>
+                            }
+                            @if (!_preview && change.State == PlanChangeState.Scheduled)
+                            { <form method="post" action="/account/plans/cancel" data-enhance="false"><AntiforgeryToken /><input type="hidden" name="ChangeId" value="@change.Id" /><button class="customer-button customer-button--quiet" type="submit">@Text["Portal.CancelDowngrade"]</button></form> }
+                        </div>
+                    }
+                    else if (!_preview && Management.Value.Enabled)
+                    {
+                        <form method="post" action="/account/plans/preview" data-enhance="false">
+                            <AntiforgeryToken /><input type="hidden" name="ServiceId" value="@entry.Service.Id" />
+                            <label for="@("plan-" + entry.Service.Id)">@Text["Portal.ChoosePlan"]</label>
+                            <select id="@("plan-" + entry.Service.Id)" name="PlanId" required>
+                                <option value="">@Text["Portal.ChoosePlan"]</option>
+                                @foreach (var plan in entry.Plans.Where(x => x.Plan.Id != entry.Service.Plan.Id))
+                                { <option value="@plan.Plan.Id">@plan.Plan.Name · @(plan.Plan.RamMb / 1024m) GiB RAM · @(plan.Plan.DiskMb / 1024m) GiB SSD</option> }
+                            </select>
+                            <button class="customer-button" type="submit">@Text["Portal.PreviewChange"]</button>
+                        </form>
+                    }
+                </article>
+            }
+        }
+        @if (Tab is "overview" or "support")
+        {
+            <div class="customer-section-title"><h2>@Text["Portal.MyTickets"]</h2>@if (Tab == "overview") { <a href="@TabUrl("support")">@Text["Portal.Support"]</a> }</div>
+            @if (_view.Tickets.Count == 0) { <div class="customer-empty"><p>@Text["Portal.NoTickets"]</p></div> }
+            @foreach (var ticket in _view.Tickets)
+            { <details class="customer-ticket"><summary>@ticket.Subject <span>@Date(ticket.CreatedAt.UtcDateTime)</span></summary><p>@ticket.Message</p><p class="customer-help">@Text["Portal.OpenRequest"] · @ticket.Id.ToString("N")[..12]</p></details> }
+            @if (Tab == "support")
+            {
+                <div class="customer-support">
+                    <div><h3>@Text["Portal.SupportTitle"]</h3><p>@Text["Portal.SupportBody"]</p><a href="@("mailto:" + Site.Value.ContactEmail)">@Text["Portal.EmailSupport"]</a></div>
+                    <form method="post" action="/account/support" data-enhance="false">
+                        <AntiforgeryToken />
+                        <label for="support-subject">@Text["Portal.SupportSubject"]</label><input id="support-subject" name="Subject" required minlength="3" maxlength="160" disabled="@_preview" />
+                        <label for="support-message">@Text["Portal.SupportMessage"]</label><textarea id="support-message" name="Message" rows="6" required minlength="10" maxlength="4000" disabled="@_preview"></textarea>
+                        <button class="customer-button" type="submit" disabled="@_preview">@Text["Portal.SendTicket"]</button>
+                    </form>
+                </div>
+            }
+        }
+        @if (Tab == "account")
+        {
+            <div class="customer-section-title"><h2>@Text["Portal.Account"]</h2></div>
+            <div class="customer-account"><span>@Text["Portal.VerifiedEmail"]</span><strong>@(_owner ?? "—")</strong><p>@Text["Portal.SecurityBody"]</p><a href="@SiteRoutes.PanelLogin" target="_blank" rel="noopener noreferrer">@Text["Portal.OpenPanel"]</a></div>
+            <AccountConnections Preview="_preview" />
+        }
+    }
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "verify")] public string? Verify { get; set; }
+    [SupplyParameterFromQuery(Name = "tab")] public string? RequestedTab { get; set; }
+    [SupplyParameterFromQuery(Name = "notice")] public string? Notice { get; set; }
+    [SupplyParameterFromQuery(Name = "preview")] public bool Preview { get; set; }
+    [SupplyParameterFromQuery(Name = "connection")] public string? Connection { get; set; }
+    private ExternalFlowView? _externalFlow;
+    private IEnumerable<string> LoginProviders => new[] { ExternalProviders.Directory, ExternalProviders.Discord }
+        .Where(x => ExternalSettings.Value.LoginEnabled(x));
+    private static readonly string[] Tabs = ["overview", "services", "invoices", "plans", "support", "account"];
+    private string Tab => Tabs.Contains(RequestedTab) ? RequestedTab! : "overview";
+    private string? _owner;
+    private bool _preview, _failed;
+    private CustomerWorkspaceView _view = CustomerWorkspaceView.Empty;
+    private string TabUrl(string tab) => "/account?" + (_preview ? "preview=true&" : "") + "tab=" + tab;
+    private static string TabKey(string tab) => char.ToUpperInvariant(tab[0]) + tab[1..];
+    private string? NoticeKey => Notice switch {
+        "sent" => "Portal.Sent", "invalid" => "Portal.Invalid", "unavailable" => "Portal.Unavailable",
+        "failed" => "Portal.Failed", "success" => "Portal.Success", "ticket" => "Portal.TicketSent",
+        "quoted" or "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "selection" or "payment-method" => "Portal.Result." + Notice,
+        _ => null
+    };
+    private string? NoticeText => Notice switch
+    {
+        "connection-failed" => IdentityText["Result.Failed"].Value,
+        "connection-complete" => IdentityText["Result.Complete"].Value,
+        "connection-removed" => IdentityText["Result.Removed"].Value,
+        _ => NoticeKey is { } key ? Text[key].Value : null
+    };
+    protected override async Task OnParametersSetAsync()
+    {
+        _view = CustomerWorkspaceView.Empty; _failed = false; _externalFlow = null;
+        _preview = Environment.IsDevelopment() && Settings.Value.PreviewEnabled && Preview;
+        try
+        {
+            var context = Context.HttpContext;
+            _owner = context is null ? null : await Access.OwnerAsync(CustomerSessionCookie.Read(context), context.RequestAborted);
+            if (!_preview && Connection is { Length: <= 36 } && Guid.TryParse(Connection, out var connectionId) && context is not null)
+                _externalFlow = await ExternalIdentity.PendingAsync(connectionId, ExternalFlowCookie.Read(context),
+                    CustomerSessionCookie.Read(context), context.RequestAborted);
+            if (_owner is not null && !_preview) _view = await Workspace.LoadAsync(_owner, Tab, context!.RequestAborted);
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { _failed = true; _owner = null; }
+    }
+    private string NextInvoice => _view.Upcoming.OrderBy(x => x.Date).FirstOrDefault() is { } next ? Money(next.Amount, next.Currency) : "—";
+    private string Status(string? status) => status is "active" or "trialing" or "past_due" or "unpaid" or "paid" or "open" or "draft" or "void" or "uncollectible" or "canceled" or "incomplete" or "incomplete_expired" or "paused" ? Text["Portal.Status." + status] : Text["Portal.NotAvailable"];
+    private string Cpu(int value) => value == 0 ? Text["Trial.Unlimited"] : value + "%";
+    private static string GameName(string slug) => slug == "project-zomboid" ? "Project Zomboid" : slug == "minecraft" ? "Minecraft" : slug;
+    private static string Date(DateTime? value) => value is { } date ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(date, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo")).ToString("g", CultureInfo.CurrentCulture) + " (Brasília)" : "—";
+    private static string Money(long amount, string currency)
+    {
+        var divisor = currency is "jpy" or "krw" or "clp" or "vnd" or "xaf" or "xof" or "xpf" or "gnf" or "bif" or "djf" or "kmf" or "mga" or "pyg" or "rwf" or "ugx" or "vuv" ? 1m : currency is "bhd" or "jod" or "kwd" or "omr" or "tnd" ? 1000m : 100m;
+        return (amount / divisor).ToString(divisor == 1 ? "N0" : divisor == 1000 ? "N3" : "N2", CultureInfo.CurrentCulture) + " " + currency.ToUpperInvariant();
+    }
+}

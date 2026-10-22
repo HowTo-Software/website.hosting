@@ -33,7 +33,7 @@
                 <p class="cancel-lede">@Text["Cancel.Lede"]</p>
 
                 <div class="cancel-actions">
-                    <CtaButton Href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, priced.Quote.Period)"
+                    <CtaButton Href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, priced.Quote.Period, priced.CurrencyCode)"
                                Variant="CtaVariant.Primary"
                                TrailingIcon="IconName.ArrowRight">
                         @Text["Cancel.TryAgain"]
@@ -50,7 +50,7 @@
                         @foreach (var other in Catalog.BillingOptions.Where(o => o.Period != priced.Quote.Period))
                         {
                             <li>
-                                <a class="period-link" href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, other.Period)">
+                                <a class="period-link" href="@SiteRoutes.Review(priced.Game.Slug, priced.Plan.Slug, other.Period, priced.CurrencyCode)">
                                     <span>@other.Label</span>
                                     @if (other.DiscountPercent > 0)
                                     {
@@ -81,7 +81,7 @@
                               Plan="summary.Plan"
                               Quote="summary.Quote"
                               PeriodLabel="@Catalog.GetOption(summary.Quote.Period).Label"
-                              CurrencySymbol="@Catalog.CurrencySymbol"
+                              CurrencyCode="@summary.CurrencyCode"
                               ShowAudience="false" />
             </div>
         }
@@ -90,6 +90,12 @@
 
 @code {
     private PricedPlan? _priced;
+
+    [CascadingParameter(Name = "StorefrontCurrency")]
+    public string BrowserCurrency { get; set; } = "usd";
+
+    [SupplyParameterFromQuery(Name = "currency")]
+    public string? CurrencyQuery { get; set; }
 
     [SupplyParameterFromQuery(Name = "game")]
     public string? GameQuery { get; set; }
@@ -108,7 +114,7 @@
 
         // These values select public catalogue entries only. The server recalculates the quote;
         // no amount or internal order identifier arrives from the browser.
-        _priced = Pricing.Price(GameQuery, PlanQuery, period);
+        _priced = Pricing.Price(GameQuery, PlanQuery, period, CurrencyQuery ?? BrowserCurrency);
     }
 }
 
