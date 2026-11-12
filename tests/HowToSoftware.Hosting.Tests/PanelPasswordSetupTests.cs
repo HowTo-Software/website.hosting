@@ -75,6 +75,21 @@ public sealed class PanelPasswordSetupTests
     }
 
     [Fact]
+    public async Task ALostCreateRaceNeverFallsBackToAnAccountWithAnotherEmail()
+    {
+        // The first lookup is empty, creation fails with HTTP 400, and the retry finds a customer
+        // whose username is this address but whose email belongs to someone else.
+        var directory = new FakeDirectory
+        {
+            WinsCreateRace = new(9, "player@example.test", "someone-else@example.test", true, false, "external", ["hts-customers"])
+        };
+        Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
+            (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
+        Assert.Single(directory.Created);
+        Assert.Empty(directory.LinkedUsers);
+    }
+
+    [Fact]
     public async Task AnAuthentikOutageIsReportedAsUnavailableInsteadOfThrowing()
     {
         var directory = new FakeDirectory { FailLookups = true };
@@ -202,15 +217,18 @@ public sealed class PanelPasswordSetupTests
         public bool IsConfigured => true;
         public bool FailLookups { get; init; }
         public bool CreateAsSuperuser { get; init; }
+        public AuthentikUser? WinsCreateRace { get; init; }
         public List<AuthentikUser> Users { get; } = [];
         public List<AuthentikNewCustomer> Created { get; } = [];
         public List<int> LinkedUsers { get; } = [];
 
+        // Like the real client: exact email or exact username, ignoring case.
         public Task<IReadOnlyList<AuthentikUser>> FindUsersByEmailAsync(string email, CancellationToken cancellationToken) =>
             FailLookups
                 ? throw new AuthentikApiException(HttpStatusCode.ServiceUnavailable, "Authentik rejected the request with HTTP 503.")
                 : Task.FromResult<IReadOnlyList<AuthentikUser>>(Users
-                    .Where(user => string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)).ToArray());
+                    .Where(user => string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(user.Username, email, StringComparison.OrdinalIgnoreCase)).ToArray());
 
         public Task<string?> FindGroupIdAsync(string name, CancellationToken cancellationToken) =>
             Task.FromResult<string?>(name == "hts-customers" ? "group-uuid" : null);
@@ -218,6 +236,11 @@ public sealed class PanelPasswordSetupTests
         public Task<AuthentikUser> CreateCustomerAsync(AuthentikNewCustomer customer, CancellationToken cancellationToken)
         {
             Created.Add(customer);
+            if (WinsCreateRace is { } winner)
+            {
+                Users.Add(winner);
+                throw new AuthentikApiException(HttpStatusCode.BadRequest, "Authentik rejected the request with HTTP 400.");
+            }
             var user = new AuthentikUser(100 + Users.Count, customer.Username, customer.Email, true, CreateAsSuperuser, "external",
                 ["hts-customers"]);
             Users.Add(user);
