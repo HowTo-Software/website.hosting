@@ -15,7 +15,9 @@ public sealed record PanelPasswordSetupResult(PanelPasswordSetupOutcome Outcome,
 
 /// <summary>
 /// Lets a customer whose email this site has already verified choose the password used by the
-/// panel's single sign-on. Staff, administrator and directory-synchronised accounts are never touched.
+/// panel's single sign-on. The site only makes sure the customer's Authentik account exists, then
+/// sends the browser to Authentik's own password reset, which emails the customer a link. The site
+/// never holds password rights. Staff, administrator and directory accounts are never touched.
 /// </summary>
 public interface IPanelPasswordSetup
 {
@@ -58,7 +60,7 @@ public sealed class AuthentikPanelPasswordSetup(
                 : matches is [var single] ? single : null;
 
             // However the account was resolved (found, created or recovered from a race), only an
-            // active customer account with exactly this address gets a link. That excludes accounts
+            // active customer account with exactly this address is sent on. That excludes accounts
             // an operator disabled, superusers (e.g. a misconfigured customer group) and near matches.
             if (customer is null || !customer.IsActive || !IsCustomer(customer, settings)
                 || !string.Equals(customer.Email, email, StringComparison.OrdinalIgnoreCase))
@@ -66,7 +68,10 @@ public sealed class AuthentikPanelPasswordSetup(
                 return PanelPasswordSetupResult.Unavailable;
             }
 
-            return new(PanelPasswordSetupOutcome.Ready, await directory.CreateRecoveryLinkAsync(customer.Pk, cancellationToken));
+            // Authentik's reset emails the link to the address, so the account owner alone can use it.
+            return settings.Origin is { } origin
+                ? new(PanelPasswordSetupOutcome.Ready, new Uri(origin, "/if/flow/" + Uri.EscapeDataString(settings.RecoveryFlow) + "/"))
+                : PanelPasswordSetupResult.Unavailable;
         }
         catch (Exception error) when (error is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {

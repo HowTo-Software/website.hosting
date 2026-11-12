@@ -96,10 +96,11 @@ The two root Compose files are older local alternatives with different services/
 
 | Variable | Purpose |
 | --- | --- |
-| Authentik__BaseUrl | Public HTTPS origin of Authentik, without a path; one-time password links point here |
-| Authentik__ApiToken | Service-account token; backend only |
+| Authentik__BaseUrl | Public HTTPS origin of Authentik, without a path; customers are sent to its password reset |
+| Authentik__ApiToken | Service-account token without password rights; backend only |
 | Authentik__CustomerGroup | Existing customer group, default `hts-customers`; must equal the panel's `AUTHENTIK_CUSTOMER_GROUP` |
 | Authentik__CustomerPath | Directory path for customers created by the site, default `customers/hts` |
+| Authentik__RecoveryFlow | Slug of the brand's recovery flow, which emails the reset link, default `default-recovery-flow` |
 | Authentik__TimeoutSeconds | API timeout, 2–60 seconds, default 15 |
 
 Configure both the URL and the token, or neither; startup validation rejects anything else. Without them the **Set panel password** button stays hidden. Setup steps and safeguards: [panel sign-in](../TRIAL-SERVERS.md#panel-sign-in).

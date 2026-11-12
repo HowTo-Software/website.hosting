@@ -10,7 +10,7 @@ namespace HowToSoftware.Hosting.Services.Identity;
 public sealed record AuthentikUser(int Pk, string Username, string Email, bool IsActive, bool IsSuperuser,
     string Type, IReadOnlyList<string> Groups);
 
-/// <summary>A website customer to create. Authentik's API cannot set passwords; recovery links do.</summary>
+/// <summary>A website customer to create, without a password; the customer chooses one through Authentik's emailed reset.</summary>
 public sealed record AuthentikNewCustomer(string Username, string Name, string Email, string Path, string GroupId);
 
 /// <summary>Never carries the token, an email address or Authentik's response body.</summary>
@@ -30,9 +30,6 @@ public interface IAuthentikClient
     Task<string?> FindGroupIdAsync(string name, CancellationToken cancellationToken);
 
     Task<AuthentikUser> CreateCustomerAsync(AuthentikNewCustomer customer, CancellationToken cancellationToken);
-
-    /// <summary>A one-time link into the brand's recovery flow, where the user chooses a password.</summary>
-    Task<Uri> CreateRecoveryLinkAsync(int userPk, CancellationToken cancellationToken);
 }
 
 /// <summary>HTTP client for the Authentik core API. The token is attached per request from options.</summary>
@@ -92,30 +89,6 @@ public sealed class AuthentikClient(HttpClient http, IOptionsMonitor<AuthentikOp
             customer.Username, customer.Name, IsActive: true, customer.Email, [customer.GroupId], customer.Path,
             Type: "external", new Dictionary<string, object> { ["hts_customer"] = true }), cancellationToken).ConfigureAwait(false);
         return Map(created);
-    }
-
-    public async Task<Uri> CreateRecoveryLinkAsync(int userPk, CancellationToken cancellationToken)
-    {
-        var path = $"/core/users/{userPk}/recovery/";
-        using var response = await ExecuteAsync(HttpMethod.Post, path, new { }, cancellationToken).ConfigureAwait(false);
-        // Current Authentik creates the link with POST; releases before that exposed the same action as GET.
-        var body = response.StatusCode == HttpStatusCode.MethodNotAllowed
-            ? await SendAsync<AuthentikLinkBody>(HttpMethod.Get, path, null, cancellationToken).ConfigureAwait(false)
-            : await ReadAsync<AuthentikLinkBody>(response, cancellationToken).ConfigureAwait(false);
-        return EnsureOwnLink(body.Link);
-    }
-
-    private Uri EnsureOwnLink(string? link)
-    {
-        // The browser is redirected to this link, so it must stay on the configured Authentik origin.
-        if (options.CurrentValue.Origin is not { } origin
-            || !Uri.TryCreate(link, UriKind.Absolute, out var uri)
-            || uri.Scheme != Uri.UriSchemeHttps
-            || !string.Equals(uri.Authority, origin.Authority, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new AuthentikApiException(null, "Authentik returned a recovery link outside its configured origin.");
-        }
-        return uri;
     }
 
     private async Task<T> SendAsync<T>(HttpMethod method, string path, object? payload, CancellationToken cancellationToken)
@@ -192,5 +165,3 @@ internal sealed record AuthentikUserBody(int Pk, string Username, string? Email,
 
 internal sealed record AuthentikCreateUserBody(string Username, string Name, bool IsActive, string Email,
     IReadOnlyList<string> Groups, string Path, string Type, IReadOnlyDictionary<string, object> Attributes);
-
-internal sealed record AuthentikLinkBody(string? Link);

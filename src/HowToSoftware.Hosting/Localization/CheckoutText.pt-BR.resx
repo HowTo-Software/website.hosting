@@ -807,7 +807,7 @@ Dúvidas: {1}</value>
     <value>Definir senha do painel</value>
   </data>
   <data name="Trial.Account.PanelSignIn" xml:space="preserve">
-    <value>No painel, escolha “Entrar com HowTo.Software SSO” e use este email. Primeiro acesso ou esqueceu a senha? Escolha “Definir senha do painel” aqui.</value>
+    <value>No painel, escolha “Entrar com HowTo.Software SSO” e use este email. Primeiro acesso ou esqueceu a senha? Escolha “Definir senha do painel” aqui, informe este email e abra o link que enviaremos.</value>
   </data>
   <data name="Trial.Notice.PanelDirectory" xml:space="preserve">
     <value>Este email já tem um acesso de equipe da HTS. Use sua senha habitual em “Entrar com HowTo.Software SSO”.</value>
@@ -821,7 +821,7 @@ Dúvidas: {1}</value>
 Abra o painel:
 {0}
 
-Entre com “Entrar com HowTo.Software SSO” usando este email. Primeiro acesso? Escolha “Definir senha do painel” na página do seu teste para criar a senha. Em outro dispositivo, recupere antes o acesso nessa página com este email:
+Entre com “Entrar com HowTo.Software SSO” usando este email. Primeiro acesso? Escolha “Definir senha do painel” na página do seu teste, informe este email e abra o link que enviaremos para criar a senha. Em outro dispositivo, recupere antes o acesso nessa página com este email:
 {2}
 
 Fim do teste: {1}

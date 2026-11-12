@@ -83,7 +83,7 @@
   <data name="Portal.VerifiedEmail" xml:space="preserve"><value>E-mail verificado</value></data>
   <data name="Portal.SecurityBody" xml:space="preserve"><value>Sua sessão tem duração limitada e está vinculada a este e-mail verificado. Apenas os serviços e faturas vinculados a ele são exibidos.</value></data>
   <data name="Portal.SetPanelPassword" xml:space="preserve"><value>Definir senha do painel</value></data>
-  <data name="Portal.PanelSignIn" xml:space="preserve"><value>O painel do jogo usa “Entrar com HowTo.Software SSO” com este e-mail. Defina ou redefina essa senha aqui.</value></data>
+  <data name="Portal.PanelSignIn" xml:space="preserve"><value>O painel do jogo usa “Entrar com HowTo.Software SSO” com este e-mail. Para definir ou redefinir essa senha, escolha “Definir senha do painel”, informe este e-mail e abra o link que enviaremos.</value></data>
   <data name="Portal.PanelDirectory" xml:space="preserve"><value>Este e-mail já tem um acesso de equipe da HTS. Use sua senha habitual em “Entrar com HowTo.Software SSO”.</value></data>
   <data name="Portal.PanelPasswordUnavailable" xml:space="preserve"><value>Não foi possível abrir a definição de senha agora. Tente novamente em alguns minutos ou entre em contato com o suporte.</value></data>
   <data name="Portal.SmtpSubject" xml:space="preserve"><value>Seu acesso seguro à conta HTS</value></data>

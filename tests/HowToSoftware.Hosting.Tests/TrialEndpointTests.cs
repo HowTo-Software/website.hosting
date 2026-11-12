@@ -324,7 +324,7 @@ public sealed class TrialEndpointTests : IDisposable
 
     private sealed class RecordingPanelPasswords : IPanelPasswordSetup
     {
-        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit-link");
+        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/");
         public bool IsConfigured => true;
         public PanelPasswordSetupOutcome Outcome { get; set; } = PanelPasswordSetupOutcome.Ready;
         public List<(string Email, string DisplayName)> Requests { get; } = [];

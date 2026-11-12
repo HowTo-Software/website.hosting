@@ -125,7 +125,7 @@ public static class TrialEndpoints
     }
 
     /// <summary>
-    /// Hands the verified trial owner to a one-time Authentik page to choose the panel's SSO password.
+    /// Sends the verified trial owner to Authentik's emailed password reset to choose the panel's SSO password.
     /// The owner cookie is the proof of email ownership; the form carries nothing else.
     /// </summary>
     private static async Task<IResult> PanelPasswordAsync([FromForm] TrialPanelPasswordForm input, HttpContext context,

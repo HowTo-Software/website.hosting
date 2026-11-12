@@ -807,7 +807,7 @@ Questions: {1}</value>
     <value>Set panel password</value>
   </data>
   <data name="Trial.Account.PanelSignIn" xml:space="preserve">
-    <value>On the panel, choose “Sign in with HowTo.Software SSO” and use this email. First time there, or forgot your password? Choose “Set panel password” here.</value>
+    <value>On the panel, choose “Sign in with HowTo.Software SSO” and use this email. First time there, or forgot your password? Choose “Set panel password” here, enter this email, and open the link we email you.</value>
   </data>
   <data name="Trial.Notice.PanelDirectory" xml:space="preserve">
     <value>This email already has an HTS staff sign-in. Use your usual password with “Sign in with HowTo.Software SSO”.</value>
@@ -821,7 +821,7 @@ Questions: {1}</value>
 Open the panel:
 {0}
 
-Sign in with “Sign in with HowTo.Software SSO” using this email. First time? Choose “Set panel password” on your trial page to create the password. On another device, recover access on that page with this email first:
+Sign in with “Sign in with HowTo.Software SSO” using this email. First time? Choose “Set panel password” on your trial page, enter this email, and open the link we email you to create the password. On another device, recover access on that page with this email first:
 {2}
 
 Trial ends: {1}

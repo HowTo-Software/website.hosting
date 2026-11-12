@@ -142,15 +142,18 @@ With `Authentik__BaseUrl` and `Authentik__ApiToken` configured:
    on the customer area's account tab, bound to their verified session email.
 2. POST `/trials/panel-password` (or `/account/panel-password`) looks up that exact email in
    Authentik. If no account exists, it creates an `external` user in the configured customer group
-   and path, without a password. It then requests a one-time recovery link and redirects the
-   browser there to choose the password. No email is involved, and the link is never logged,
-   placed in a URL of this site or rendered in a page.
+   and path, without a password. It then redirects the browser to the brand's recovery flow
+   (`Authentik__RecoveryFlow`). The customer enters the same email there, and Authentik emails a
+   link for choosing the password, so only someone who reads that mailbox can set it. The site
+   holds no password rights: a leaked token cannot set or reset anyone's password.
 3. The customer signs in on the panel with "Sign in with HowTo.Software SSO" and this email.
-   Later resets work through Authentik's own recovery flow, because the account now exists there.
+   Later resets use the same button or the panel's "Forgot password?", because the account now
+   exists in Authentik.
 
-The site never issues a link for, modifies or re-enables an account unless it is an active,
-non-superuser `external` member of the customer group with exactly the verified email. This holds
-however the account was resolved: found, newly created or recovered after a concurrent request.
+The site creates an account, or sends the browser on to the reset, only for an active,
+non-superuser `external` member of the customer group with exactly the verified email. It never
+modifies or re-enables an existing account. This holds however the account was resolved: found,
+newly created or recovered after a concurrent request.
 Any other match, such as a staff member's directory account, gets a notice to keep using that
 account's existing password. The directory search reads every result page and refuses to decide
 on an incomplete result.
@@ -165,20 +168,23 @@ Authentik and panel setup:
 
 - Create the customer group (default `hts-customers`) without superuser rights or extra roles.
 - Create a service account and token for this site. Grant its role only what this flow uses:
-  view and add users, view groups, add users to the customer group and reset user passwords
-  (recovery links). Store the token privately as `Authentik__ApiToken`.
-- Set a recovery flow on the brand serving the Authentik hostname. Recovery links fail with
-  "No recovery flow set" otherwise, and the panel's "Forgot password?" relies on it as well.
-  Configure Authentik email for those later resets.
-- Allow the customer group to use the panel's Authentik application, and bind policies so
-  customers cannot open other applications. Optionally make the panel the brand's default
+  view and add users, view groups, and add users to the customer group (an object permission on
+  that group). Grant no password rights: Authentik's "reset user password" permission covers every
+  account, including staff and directory accounts whose passwords may be written back to Active
+  Directory. Store the token privately as `Authentik__ApiToken`.
+- Set a recovery flow on the brand serving the Authentik hostname, and set
+  `Authentik__RecoveryFlow` to its slug if it is not `default-recovery-flow`. Configure Authentik
+  email, because that flow sends the reset link; the panel's "Forgot password?" relies on it too.
+- Make sure the customer group can use the panel's Authentik application: an application without
+  policy bindings admits every user, and one with bindings needs one for this group. Bind policies
+  so customers cannot open other applications. Optionally make the panel the brand's default
   application so `external` users land there after choosing a password.
 - Set `AUTHENTIK_CUSTOMER_GROUP` to the same group name in the panel's private environment. The
   panel then admits SSO identities from that group only to accounts carrying the website's
   customer external IDs, never to directory-owned, root-administrator or other accounts.
-- Use the public Authentik hostname as `Authentik__BaseUrl`, because recovery links are built from
-  it. If Cloudflare blocks the server-to-server calls, resolve that hostname to the local reverse
-  proxy, as the panel's Compose file does with `extra_hosts`.
+- Use the public Authentik hostname as `Authentik__BaseUrl`, because customers are sent to its
+  recovery page. If Cloudflare blocks the server-to-server calls, resolve that hostname to the
+  local reverse proxy, as the panel's Compose file does with `extra_hosts`.
 
 ## Minecraft profile allowlist
 
