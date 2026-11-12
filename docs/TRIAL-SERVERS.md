@@ -149,11 +149,17 @@ With `Authentik__BaseUrl` and `Authentik__ApiToken` configured:
    Later resets work through Authentik's own recovery flow, because the account now exists there.
 
 The site never issues a link for, modifies or re-enables an account unless it is an active,
-non-superuser `external` member of the customer group. Any other match, such as a staff member's
-directory account, gets a notice to keep using that account's existing password. When configured,
-the trial-ready email explains these steps. Because the form post is redirected to Authentik,
-`/trial` and `/account` add only the configured Authentik origin to the CSP `form-action` directive.
-Without the configuration the button stays hidden and the page keeps its previous hint.
+non-superuser `external` member of the customer group with exactly the verified email. This holds
+however the account was resolved: found, newly created or recovered after a concurrent request.
+Any other match, such as a staff member's directory account, gets a notice to keep using that
+account's existing password. The directory search reads every result page and refuses to decide
+on an incomplete result.
+
+When configured, the trial-ready email explains these steps. Because the form post is redirected
+to Authentik, the CSP `form-action` directive also allows the configured Authentik origin, and
+only that origin. It does so on every page, because Blazor enhanced navigation keeps the policy of
+the first page loaded. Without the configuration the button stays hidden and the page keeps its
+previous hint.
 
 Authentik and panel setup:
 

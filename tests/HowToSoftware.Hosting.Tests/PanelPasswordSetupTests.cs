@@ -64,6 +64,17 @@ public sealed class PanelPasswordSetupTests
     }
 
     [Fact]
+    public async Task ANewAccountThatAuthentikReportsAsSuperuserGetsNoLink()
+    {
+        // For example, a customer group that was mistakenly given superuser rights.
+        var directory = new FakeDirectory { CreateAsSuperuser = true };
+        Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
+            (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
+        Assert.Single(directory.Created);
+        Assert.Empty(directory.LinkedUsers);
+    }
+
+    [Fact]
     public async Task AnAuthentikOutageIsReportedAsUnavailableInsteadOfThrowing()
     {
         var directory = new FakeDirectory { FailLookups = true };
@@ -113,20 +124,38 @@ public sealed class PanelPasswordSetupTests
     }
 
     [Fact]
-    public async Task EmailLookupKeepsOnlyExactAddressesFromAuthentikSearch()
+    public async Task EmailLookupReadsEverySearchPageAndKeepsOnlyExactAddresses()
     {
-        var handler = new StubHandler(_ => Json("""
-            {"results":[
-              {"pk":1,"username":"p1","email":"Player@Example.test","is_active":true,"is_superuser":false,"type":"external",
-               "groups_obj":[{"pk":"g","name":"hts-customers"}]},
-              {"pk":2,"username":"p2","email":"otherplayer@example.test","is_active":true,"is_superuser":false,"type":"external",
-               "groups_obj":[]}
-            ]}
-            """));
+        var handler = new StubHandler(request => Json(request.RequestUri!.Query.Contains("page=1&", StringComparison.Ordinal)
+            ? """
+              {"pagination":{"next":2},"results":[
+                {"pk":2,"username":"p2","email":"otherplayer@example.test","is_active":true,"is_superuser":false,"type":"external",
+                 "groups_obj":[]}
+              ]}
+              """
+            : """
+              {"pagination":{"next":0},"results":[
+                {"pk":1,"username":"p1","email":"Player@Example.test","is_active":true,"is_superuser":false,"type":"external",
+                 "groups_obj":[{"pk":"g","name":"hts-customers"}]}
+              ]}
+              """));
         using var http = new HttpClient(handler);
         var users = await Client(http).FindUsersByEmailAsync("player@example.test", default);
         Assert.Equal(1, Assert.Single(users).Pk);
-        Assert.Equal("/api/v3/core/users/?search=player%40example.test&page_size=100", Assert.Single(handler.Requests).Path);
+        Assert.Equal(new[]
+        {
+            "/api/v3/core/users/?search=player%40example.test&page=1&page_size=100",
+            "/api/v3/core/users/?search=player%40example.test&page=2&page_size=100"
+        }, handler.Requests.Select(x => x.Path));
+    }
+
+    [Fact]
+    public async Task ALookupThatCannotBeCompletedFailsClosed()
+    {
+        var handler = new StubHandler(_ => Json("""{"pagination":{"next":99},"results":[]}"""));
+        using var http = new HttpClient(handler);
+        await Assert.ThrowsAsync<AuthentikApiException>(() => Client(http).FindUsersByEmailAsync("player@example.test", default));
+        Assert.Equal(10, handler.Requests.Count);
     }
 
     [Theory]
@@ -172,6 +201,7 @@ public sealed class PanelPasswordSetupTests
         public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit");
         public bool IsConfigured => true;
         public bool FailLookups { get; init; }
+        public bool CreateAsSuperuser { get; init; }
         public List<AuthentikUser> Users { get; } = [];
         public List<AuthentikNewCustomer> Created { get; } = [];
         public List<int> LinkedUsers { get; } = [];
@@ -188,7 +218,8 @@ public sealed class PanelPasswordSetupTests
         public Task<AuthentikUser> CreateCustomerAsync(AuthentikNewCustomer customer, CancellationToken cancellationToken)
         {
             Created.Add(customer);
-            var user = new AuthentikUser(100 + Users.Count, customer.Username, customer.Email, true, false, "external", ["hts-customers"]);
+            var user = new AuthentikUser(100 + Users.Count, customer.Username, customer.Email, true, CreateAsSuperuser, "external",
+                ["hts-customers"]);
             Users.Add(user);
             return Task.FromResult(user);
         }
