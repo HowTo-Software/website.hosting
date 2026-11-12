@@ -16,7 +16,7 @@
     <!-- Testing. SQLite is a TEST-ONLY dependency: it backs the hermetic unit suite so it needs
          no server. Anything provider specific must be covered by the gated SQL Server
          integration tests instead. -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
