@@ -55,12 +55,13 @@ public sealed class AuthentikPanelPasswordSetup(
 
             var customer = matches.Count == 0
                 ? await CreateCustomerAsync(email, displayName, settings, cancellationToken)
-                : matches is [var single] && string.Equals(single.Email, email, StringComparison.OrdinalIgnoreCase)
-                    ? single
-                    : null;
+                : matches is [var single] ? single : null;
 
-            // A disabled customer was disabled by an operator and stays that way.
-            if (customer is not { IsActive: true })
+            // However the account was resolved (found, created or recovered from a race), only an
+            // active customer account with exactly this address gets a link. That excludes accounts
+            // an operator disabled, superusers (e.g. a misconfigured customer group) and near matches.
+            if (customer is null || !customer.IsActive || !IsCustomer(customer, settings)
+                || !string.Equals(customer.Email, email, StringComparison.OrdinalIgnoreCase))
             {
                 return PanelPasswordSetupResult.Unavailable;
             }

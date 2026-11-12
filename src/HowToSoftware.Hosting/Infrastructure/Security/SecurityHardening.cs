@@ -231,14 +231,10 @@ public sealed class SecurityHeadersMiddleware
         // trusted X-Forwarded-Proto because UseForwardedHeaders runs before this middleware.
         var upgrade = context.Request.IsHttps ? " upgrade-insecure-requests;" : string.Empty;
 
-        // Browsers also apply form-action to the redirect after a POST. The panel password forms
-        // post here and are redirected to Authentik, so only those pages may continue there.
-        var formAction = "'self'";
-        if (_identityOrigin is not null
-            && (context.Request.Path.StartsWithSegments("/trial") || context.Request.Path.StartsWithSegments("/account")))
-        {
-            formAction += " " + _identityOrigin;
-        }
+        // Browsers also apply form-action to the redirect after a POST, and the panel password forms
+        // are redirected to Authentik. Blazor enhanced navigation keeps the CSP of the first document
+        // loaded, so any page that can navigate to /trial or /account must allow that origin too.
+        var formAction = _identityOrigin is null ? "'self'" : "'self' " + _identityOrigin;
 
         return "default-src 'self'; "
             + $"base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action {formAction}; "

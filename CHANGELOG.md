@@ -11,7 +11,7 @@ This changelog records the current state and known local work. No release tag ha
 ## Unreleased — panel sign-in for trial customers (2026-11-11)
 
 - Fixed trial and paid customers being unable to get a panel password. The panel signs in only through Authentik, which had no record of website customers, so its recovery flow showed "Email sent." without sending anything. With `Authentik__*` configured, the trial page and the customer area's account tab offer **Set panel password**. It creates the customer's Authentik account (an `external` user in the customer group) and opens a one-time password page. Staff, administrator and directory accounts are never modified.
-- When panel sign-in is configured, the trial-ready email explains how to sign in. `/trial` and `/account` allow only the configured Authentik origin in the CSP `form-action` directive, for that handoff.
+- When panel sign-in is configured, the trial-ready email explains how to sign in. The CSP `form-action` directive also allows the configured Authentik origin for that handoff. It does so on every page, because Blazor enhanced navigation keeps the first page's policy.
 - The trial recovery form now resends the confirmation for a request that was never confirmed, instead of reporting "sent" without sending.
 - A confirmation email that fails to send no longer starts the two-minute resend cooldown, so an immediate retry sends instead of silently reporting success.
 - Requires the companion panel change (`AUTHENTIK_CUSTOMER_GROUP`) and the Authentik setup in [TRIAL-SERVERS.md](docs/TRIAL-SERVERS.md#panel-sign-in).

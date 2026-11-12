@@ -42,6 +42,9 @@ public sealed class AuthentikClient(HttpClient http, IOptionsMonitor<AuthentikOp
 
     private const string ApiPath = "/api/v3";
 
+    // 1,000 accounts containing one customer's address means something is wrong; refuse instead.
+    private const int MaxSearchPages = 10;
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -52,14 +55,26 @@ public sealed class AuthentikClient(HttpClient http, IOptionsMonitor<AuthentikOp
 
     public async Task<IReadOnlyList<AuthentikUser>> FindUsersByEmailAsync(string email, CancellationToken cancellationToken)
     {
-        // Search is a case-insensitive substring match across several fields; exactness is enforced here.
-        var page = await SendAsync<AuthentikPage<AuthentikUserBody>>(HttpMethod.Get,
-            $"/core/users/?search={Uri.EscapeDataString(email)}&page_size=100", null, cancellationToken).ConfigureAwait(false);
-        return (page.Results ?? [])
-            .Where(user => string.Equals(user.Email?.Trim(), email, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(user.Username, email, StringComparison.OrdinalIgnoreCase))
-            .Select(Map)
-            .ToArray();
+        // Search is a case-insensitive substring match across several fields. Every page is read, so
+        // an exact match or a conflicting staff account is never missed; exactness is enforced here.
+        var matches = new List<AuthentikUser>();
+        for (var page = 1; page <= MaxSearchPages; page++)
+        {
+            var result = await SendAsync<AuthentikPage<AuthentikUserBody>>(HttpMethod.Get,
+                $"/core/users/?search={Uri.EscapeDataString(email)}&page={page}&page_size=100", null, cancellationToken)
+                .ConfigureAwait(false);
+            matches.AddRange((result.Results ?? [])
+                .Where(user => string.Equals(user.Email?.Trim(), email, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(user.Username, email, StringComparison.OrdinalIgnoreCase))
+                .Select(Map));
+            if (result.Pagination is not { Next: > 0 })
+            {
+                return matches;
+            }
+        }
+
+        // Deciding on a partial view of the directory could miss a conflicting account.
+        throw new AuthentikApiException(null, "Authentik returned more search results than can be checked.");
     }
 
     public async Task<string?> FindGroupIdAsync(string name, CancellationToken cancellationToken)
@@ -165,7 +180,10 @@ public sealed class AuthentikClient(HttpClient http, IOptionsMonitor<AuthentikOp
         user.GroupsObj?.Select(group => group.Name).ToArray() ?? []);
 }
 
-internal sealed record AuthentikPage<T>(IReadOnlyList<T>? Results);
+internal sealed record AuthentikPage<T>(IReadOnlyList<T>? Results, AuthentikPagination? Pagination = null);
+
+/// <summary>Authentik reports the next page number, or 0 on the last page.</summary>
+internal sealed record AuthentikPagination(int Next);
 
 internal sealed record AuthentikGroupBody(string Pk, string Name);
 

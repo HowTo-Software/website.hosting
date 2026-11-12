@@ -189,9 +189,14 @@ public sealed class TrialEndpointTests : IDisposable
         using (var page = await _client.GetAsync("/trial"))
         {
             Assert.Contains("action=\"/trials/panel-password\"", await page.Content.ReadAsStringAsync());
-            // The POST is redirected to Authentik, which browsers check against form-action.
+        }
+
+        // The POST is redirected to Authentik, which browsers check against form-action. Enhanced
+        // navigation keeps the first document's policy, so a page linking here must allow it too.
+        using (var home = await _client.GetAsync("/"))
+        {
             Assert.Contains("form-action 'self' https://auth.example.test;",
-                Assert.Single(page.Headers.GetValues("Content-Security-Policy")));
+                Assert.Single(home.Headers.GetValues("Content-Security-Policy")));
         }
 
         using var content = CsrfForm(await CsrfAsync());
