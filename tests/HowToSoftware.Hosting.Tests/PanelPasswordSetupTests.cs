@@ -12,19 +12,20 @@ public sealed class PanelPasswordSetupTests
 {
     private static AuthentikOptions Settings() => new() { BaseUrl = "https://auth.example.test", ApiToken = "unit-test-only" };
 
+    private static readonly Uri RecoveryPage = new("https://auth.example.test/if/flow/default-recovery-flow/");
+
     private static AuthentikPanelPasswordSetup Service(FakeDirectory directory) =>
         new(directory, new Monitor(Settings()), NullLogger<AuthentikPanelPasswordSetup>.Instance);
 
     [Fact]
-    public async Task AFirstTimeCustomerBecomesAnExternalCustomerGroupMemberAndGetsAOneTimeLink()
+    public async Task AFirstTimeCustomerBecomesAnExternalCustomerGroupMemberAndIsSentToTheEmailedReset()
     {
         var directory = new FakeDirectory();
         var result = await Service(directory).CreateLinkAsync("Player@Example.test", "Player One", default);
         Assert.Equal(PanelPasswordSetupOutcome.Ready, result.Outcome);
-        Assert.Equal(FakeDirectory.Link, result.Link);
+        Assert.Equal(RecoveryPage, result.Link);
         Assert.Equal(new AuthentikNewCustomer("player@example.test", "Player One", "player@example.test", "customers/hts", "group-uuid"),
             Assert.Single(directory.Created));
-        Assert.Equal(new[] { directory.Users.Single().Pk }, directory.LinkedUsers);
     }
 
     [Fact]
@@ -34,8 +35,8 @@ public sealed class PanelPasswordSetupTests
         directory.Users.Add(new(7, "player@example.test", "player@example.test", true, false, "external", ["hts-customers"]));
         var result = await Service(directory).CreateLinkAsync("player@example.test", "Player", default);
         Assert.Equal(PanelPasswordSetupOutcome.Ready, result.Outcome);
+        Assert.Equal(RecoveryPage, result.Link);
         Assert.Empty(directory.Created);
-        Assert.Equal(new[] { 7 }, directory.LinkedUsers);
     }
 
     [Theory]
@@ -50,28 +51,27 @@ public sealed class PanelPasswordSetupTests
         Assert.Equal(PanelPasswordSetupOutcome.DirectoryAccount, result.Outcome);
         Assert.Null(result.Link);
         Assert.Empty(directory.Created);
-        Assert.Empty(directory.LinkedUsers);
     }
 
     [Fact]
-    public async Task ADisabledCustomerStaysDisabledAndGetsNoLink()
+    public async Task ADisabledCustomerStaysDisabledAndIsNotSentOn()
     {
         var directory = new FakeDirectory();
         directory.Users.Add(new(7, "player@example.test", "player@example.test", false, false, "external", ["hts-customers"]));
-        Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
-            (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
-        Assert.Empty(directory.LinkedUsers);
+        var result = await Service(directory).CreateLinkAsync("player@example.test", "Player", default);
+        Assert.Equal(PanelPasswordSetupOutcome.Unavailable, result.Outcome);
+        Assert.Null(result.Link);
     }
 
     [Fact]
-    public async Task ANewAccountThatAuthentikReportsAsSuperuserGetsNoLink()
+    public async Task ANewAccountThatAuthentikReportsAsSuperuserIsNotSentOn()
     {
         // For example, a customer group that was mistakenly given superuser rights.
         var directory = new FakeDirectory { CreateAsSuperuser = true };
-        Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
-            (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
+        var result = await Service(directory).CreateLinkAsync("player@example.test", "Player", default);
+        Assert.Equal(PanelPasswordSetupOutcome.Unavailable, result.Outcome);
+        Assert.Null(result.Link);
         Assert.Single(directory.Created);
-        Assert.Empty(directory.LinkedUsers);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public sealed class PanelPasswordSetupTests
         {
             WinsCreateRace = new(9, "player@example.test", "someone-else@example.test", true, false, "external", ["hts-customers"])
         };
-        Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
-            (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
+        var result = await Service(directory).CreateLinkAsync("player@example.test", "Player", default);
+        Assert.Equal(PanelPasswordSetupOutcome.Unavailable, result.Outcome);
+        Assert.Null(result.Link);
         Assert.Single(directory.Created);
-        Assert.Empty(directory.LinkedUsers);
     }
 
     [Fact]
@@ -95,23 +95,6 @@ public sealed class PanelPasswordSetupTests
         var directory = new FakeDirectory { FailLookups = true };
         Assert.Equal(PanelPasswordSetupOutcome.Unavailable,
             (await Service(directory).CreateLinkAsync("player@example.test", "Player", default)).Outcome);
-    }
-
-    [Fact]
-    public async Task RecoveryLinksFallBackToGetOnOlderAuthentikAndMustStayOnTheConfiguredOrigin()
-    {
-        var older = new StubHandler(request => request.Method == HttpMethod.Post
-            ? new HttpResponseMessage(HttpStatusCode.MethodNotAllowed)
-            : Json("""{"link":"https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit"}"""));
-        using var olderHttp = new HttpClient(older);
-        var link = await Client(olderHttp).CreateRecoveryLinkAsync(7, default);
-        Assert.Equal("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit", link.AbsoluteUri);
-        Assert.Equal(new[] { "POST /api/v3/core/users/7/recovery/", "GET /api/v3/core/users/7/recovery/" },
-            older.Requests.Select(x => $"{x.Method} {x.Path}"));
-        Assert.All(older.Requests, x => Assert.Equal("Bearer unit-test-only", x.Authorization));
-
-        using var foreignHttp = new HttpClient(new StubHandler(_ => Json("""{"link":"https://phishing.example/if/flow/x/"}""")));
-        await Assert.ThrowsAsync<AuthentikApiException>(() => Client(foreignHttp).CreateRecoveryLinkAsync(7, default));
     }
 
     [Fact]
@@ -187,6 +170,18 @@ public sealed class PanelPasswordSetupTests
         Assert.DoesNotContain("unit-secret-token", string.Join(" ", result.Failures ?? []), StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("custom_recovery-2", true)]
+    [InlineData("", false)]
+    [InlineData("../admin", false)]
+    [InlineData("flow?next=x", false)]
+    public void TheRecoveryFlowMustBeAPlainSlug(string flow, bool valid)
+    {
+        var settings = Settings();
+        settings.RecoveryFlow = flow;
+        Assert.Equal(valid, new AuthentikOptionsValidator().Validate(null, settings).Succeeded);
+    }
+
     private static AuthentikClient Client(HttpClient http) => new(http, new Monitor(Settings()));
 
     private static HttpResponseMessage Json(string json, HttpStatusCode status = HttpStatusCode.OK) =>
@@ -213,14 +208,12 @@ public sealed class PanelPasswordSetupTests
 
     private sealed class FakeDirectory : IAuthentikClient
     {
-        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit");
         public bool IsConfigured => true;
         public bool FailLookups { get; init; }
         public bool CreateAsSuperuser { get; init; }
         public AuthentikUser? WinsCreateRace { get; init; }
         public List<AuthentikUser> Users { get; } = [];
         public List<AuthentikNewCustomer> Created { get; } = [];
-        public List<int> LinkedUsers { get; } = [];
 
         // Like the real client: exact email or exact username, ignoring case.
         public Task<IReadOnlyList<AuthentikUser>> FindUsersByEmailAsync(string email, CancellationToken cancellationToken) =>
@@ -245,12 +238,6 @@ public sealed class PanelPasswordSetupTests
                 ["hts-customers"]);
             Users.Add(user);
             return Task.FromResult(user);
-        }
-
-        public Task<Uri> CreateRecoveryLinkAsync(int userPk, CancellationToken cancellationToken)
-        {
-            LinkedUsers.Add(userPk);
-            return Task.FromResult(Link);
         }
     }
 }

@@ -203,7 +203,7 @@ public sealed class CustomerEndpointTests : IDisposable
     }
     private sealed class PasswordsFake : IPanelPasswordSetup
     {
-        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit-link");
+        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/");
         public bool IsConfigured => true;
         public List<string> Requests { get; } = [];
         public Task<PanelPasswordSetupResult> CreateLinkAsync(string verifiedEmail, string displayName, CancellationToken ct)

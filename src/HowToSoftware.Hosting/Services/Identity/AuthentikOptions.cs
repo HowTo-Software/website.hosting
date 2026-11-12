@@ -10,10 +10,10 @@ public sealed class AuthentikOptions
 {
     public const string SectionName = "Authentik";
 
-    /// <summary>Public HTTPS origin, e.g. https://auth.howto.software. One-time links point here.</summary>
+    /// <summary>Public HTTPS origin, e.g. https://auth.howto.software, where customers reset their password.</summary>
     public string BaseUrl { get; set; } = string.Empty;
 
-    /// <summary>Token of a service account that can view/create users and create recovery links.</summary>
+    /// <summary>Token of a service account that can view and add users and view groups. No password rights.</summary>
     public string ApiToken { get; set; } = string.Empty;
 
     /// <summary>Existing group that marks website customers; the panel uses the same name.</summary>
@@ -21,6 +21,9 @@ public sealed class AuthentikOptions
 
     /// <summary>Directory path given to customers created by this site.</summary>
     public string CustomerPath { get; set; } = "customers/hts";
+
+    /// <summary>Slug of the brand's recovery flow, which emails the customer a link to choose a password.</summary>
+    public string RecoveryFlow { get; set; } = "default-recovery-flow";
 
     public int TimeoutSeconds { get; set; } = 15;
 
@@ -75,6 +78,12 @@ public sealed class AuthentikOptionsValidator : IValidateOptions<AuthentikOption
             || path.Contains("//", StringComparison.Ordinal) || path.Any(char.IsControl))
         {
             failures.Add("Authentik:CustomerPath must be a relative path without leading, trailing or empty segments.");
+        }
+
+        if (options.RecoveryFlow is not { Length: > 0 and <= 100 } slug
+            || !slug.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
+        {
+            failures.Add("Authentik:RecoveryFlow must be the slug of an Authentik recovery flow.");
         }
 
         if (options.TimeoutSeconds is < 2 or > 60)
