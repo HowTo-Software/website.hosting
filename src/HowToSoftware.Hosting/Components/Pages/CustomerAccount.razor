@@ -4,6 +4,7 @@
 @using HowToSoftware.Hosting.Services.Subscriptions
 @using HowToSoftware.Hosting.Services.Identity
 @inject IExternalIdentityService ExternalIdentity
+@inject IPanelPasswordSetup PanelPassword
 @inject IOptions<ExternalIdentityOptions> ExternalSettings
 @inject IStringLocalizer<IdentityText> IdentityText
 @inject ICustomerAccess Access
@@ -217,7 +218,13 @@
         @if (Tab == "account")
         {
             <div class="customer-section-title"><h2>@Text["Portal.Account"]</h2></div>
-            <div class="customer-account"><span>@Text["Portal.VerifiedEmail"]</span><strong>@(_owner ?? "—")</strong><p>@Text["Portal.SecurityBody"]</p><a href="@SiteRoutes.PanelLogin" target="_blank" rel="noopener noreferrer">@Text["Portal.OpenPanel"]</a></div>
+            <div class="customer-account"><span>@Text["Portal.VerifiedEmail"]</span><strong>@(_owner ?? "—")</strong><p>@Text["Portal.SecurityBody"]</p>
+                @if (!_preview && PanelPassword.IsConfigured)
+                {
+                    <p>@Text["Portal.PanelSignIn"]</p>
+                    <form method="post" action="/account/panel-password" data-enhance="false"><AntiforgeryToken /><button type="submit" class="customer-button">@Text["Portal.SetPanelPassword"]</button></form>
+                }
+                <a href="@SiteRoutes.PanelLogin" target="_blank" rel="noopener noreferrer">@Text["Portal.OpenPanel"]</a></div>
             <AccountConnections Preview="_preview" />
         }
     }
@@ -242,6 +249,7 @@
     private string? NoticeKey => Notice switch {
         "sent" => "Portal.Sent", "invalid" => "Portal.Invalid", "unavailable" => "Portal.Unavailable",
         "failed" => "Portal.Failed", "success" => "Portal.Success", "ticket" => "Portal.TicketSent",
+        "panel-directory" => "Portal.PanelDirectory", "panel-password-unavailable" => "Portal.PanelPasswordUnavailable",
         "quoted" or "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "selection" or "payment-method" => "Portal.Result." + Notice,
         _ => null
     };

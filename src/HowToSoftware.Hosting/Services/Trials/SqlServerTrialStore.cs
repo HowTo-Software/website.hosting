@@ -49,6 +49,15 @@ public sealed class SqlServerTrialStore(IDbContextFactory<CommerceDbContext> fac
                 .SetProperty(x => x.UpdatedAt, now), ct) == 1;
     }
 
+    public async Task ClearVerificationAsync(Guid id, string verificationHash, CancellationToken ct)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await db.ServerTrials.Where(x => x.Id == id && x.VerificationTokenHash == verificationHash)
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(x => x.VerificationTokenHash, (string?)null)
+                .SetProperty(x => x.VerificationExpiresAt, (DateTimeOffset?)null), ct);
+    }
+
     public async Task<bool> ConfirmAsync(Guid id, string verificationHash, string accessHash, DateTimeOffset now, CancellationToken ct)
     {
         await using var db = await factory.CreateDbContextAsync(ct);

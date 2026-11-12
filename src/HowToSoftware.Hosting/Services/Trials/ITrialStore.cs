@@ -17,6 +17,8 @@ public interface ITrialStore
     Task<ServerTrialRecord?> FindByOrderAsync(Guid orderId, CancellationToken cancellationToken);
     Task<bool> AddPendingAsync(ServerTrialRecord record, CancellationToken cancellationToken);
     Task<bool> RefreshVerificationAsync(ServerTrialRecord record, DateTimeOffset now, CancellationToken cancellationToken);
+    /// <summary>Withdraws an undelivered verification link, only if it is still the current one.</summary>
+    Task ClearVerificationAsync(Guid id, string verificationHash, CancellationToken cancellationToken);
     Task<bool> ConfirmAsync(Guid id, string verificationHash, string accessHash, DateTimeOffset now, CancellationToken cancellationToken);
     Task<IReadOnlyList<Guid>> ListDueAsync(DateTimeOffset now, CancellationToken cancellationToken);
     Task<ServerTrialRecord?> ClaimAsync(Guid id, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken);

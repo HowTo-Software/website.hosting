@@ -1,6 +1,7 @@
 using System.Globalization;
 using HowToSoftware.Hosting.Localization;
 using HowToSoftware.Hosting.Models;
+using HowToSoftware.Hosting.Services.Identity;
 using HowToSoftware.Hosting.Services.Trials;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
@@ -78,6 +79,26 @@ public sealed class TrialEmailTests
         Assert.Contains("2026-10-06 15:00 UTC", transport.Messages[0].Body);
         Assert.Contains("2026-10-09 15:00 UTC", transport.Messages[1].Body);
         Assert.Contains("https://hosting.example.test/trial", transport.Messages[1].Body);
+    }
+
+    [Theory]
+    [InlineData("en", "Sign in with HowTo.Software SSO", "Set panel password")]
+    [InlineData("pt-BR", "Entrar com HowTo.Software SSO", "Definir senha do painel")]
+    public async Task WithPanelSsoTheReadyMessageSaysWhereToChooseThePassword(string locale, string signIn, string action)
+    {
+        var transport = new RecordingTransport();
+        var sender = new SmtpTrialEmailSender(Options.Create(ConfiguredSmtp()),
+            Options.Create(new SiteOptions { BaseUrl = "https://hosting.example.test", ContactEmail = "help@example.test" }),
+            TestLocalizer.For<CheckoutText>(), transport,
+            panelSignIn: Options.Create(new AuthentikOptions { BaseUrl = "https://auth.example.test", ApiToken = "unit-test-only" }));
+        await sender.SendReadyAsync("player@example.test", "https://panel.example.test",
+            new DateTimeOffset(2026, 10, 6, 15, 0, 0, TimeSpan.Zero), locale, default);
+        var body = Assert.Single(transport.Messages).Body;
+        Assert.Contains(signIn, body);
+        Assert.Contains(action, body);
+        Assert.Contains("https://hosting.example.test/trial", body);
+        Assert.DoesNotContain("setup email", body);
+        Assert.DoesNotContain("unit-test-only", body);
     }
 
     [Fact]

@@ -4,7 +4,7 @@
 >
 > **Owner:** HTS / HowToSoftware maintainers
 >
-> **Last updated:** 2026-10-05
+> **Last updated:** 2026-11-11
 
 [Index](README.md) · [Commerce](COMMERCE-ARCHITECTURE.md) · [Pterodactyl](PTERODACTYL-SETUP.md) · [Deployment](DEPLOYMENT.md)
 
@@ -28,6 +28,7 @@ email delivery, server creation, suspension or deletion was performed to impleme
    panel account and provisions the trial.
 5. Installation completion starts the trial clock. The ready email includes the panel URL and
    the exact UTC expiry. `/trial` shows the durable state and offers a native progress refresh.
+   With [panel sign-in](#panel-sign-in) configured, it also offers **Set panel password**.
 6. After 24 hours, the worker suspends the server and emails the customer. Its world/files are
    retained for another 72 hours. A confirmed paid upgrade applies the purchased resource
    limits and resumes the same server, keeping its files and identifier.
@@ -90,6 +91,8 @@ Swap `0` means disabled. These semantics are explicit in the
   before provisioning can start; setting a frontend flag alone cannot activate trials.
 - Correct HTTPS `Site.BaseUrl`, AllowedHosts, reverse proxy forwarding and a running lifecycle
   worker. A verification email must link to the intended public site, not localhost.
+- Authentik customer provisioning, when the panel signs in only through Authentik SSO. Without it,
+  a new trial owner has no way to obtain a panel password. See [panel sign-in](#panel-sign-in).
 - Approved Minecraft profiles and versions before offering those configurations. Project
   Zomboid can use the existing configured Pterodactyl template.
 
@@ -117,6 +120,59 @@ including later worker notifications. Expiry/retention dates are explicit UTC ti
 The transport omits raw SMTP error details from exceptions because responses may repeat a
 recipient or relay detail. Delivery acceptance is not a guarantee that an inbox accepted it;
 verify relay logs privately when troubleshooting.
+
+A send failure is never reported as "sent": the request shows the unavailable notice and its
+undelivered link is withdrawn, so an immediate retry sends a new message instead of being
+treated as a duplicate. The recovery form resends the confirmation of a request that was never
+confirmed. It still gives an unknown address the same generic answer.
+
+## Panel sign-in
+
+The production panel signs in only through Authentik single sign-on. Its login page has no
+password form, and its "Forgot password?" link opens Authentik's recovery flow. This site creates
+trial and paid customers as panel accounts (`hts-trial-user:` and `hts-customer:` external IDs),
+not as Active Directory users. Without this integration they can never obtain a password: under
+SSO the panel's account email has no setup link, SSO admits only directory-owned panel accounts,
+and Authentik's recovery flow answers "Email sent." for an unknown address without sending anything.
+
+With `Authentik__BaseUrl` and `Authentik__ApiToken` configured:
+
+1. The trial page shows **Set panel password** to the verified owner (the `hts.trial-access`
+   cookie) while a panel account exists or is being created. Paid customers get the same button
+   on the customer area's account tab, bound to their verified session email.
+2. POST `/trials/panel-password` (or `/account/panel-password`) looks up that exact email in
+   Authentik. If no account exists, it creates an `external` user in the configured customer group
+   and path, without a password. It then requests a one-time recovery link and redirects the
+   browser there to choose the password. No email is involved, and the link is never logged,
+   placed in a URL of this site or rendered in a page.
+3. The customer signs in on the panel with "Sign in with HowTo.Software SSO" and this email.
+   Later resets work through Authentik's own recovery flow, because the account now exists there.
+
+The site never issues a link for, modifies or re-enables an account unless it is an active,
+non-superuser `external` member of the customer group. Any other match, such as a staff member's
+directory account, gets a notice to keep using that account's existing password. When configured,
+the trial-ready email explains these steps. Because the form post is redirected to Authentik,
+`/trial` and `/account` add only the configured Authentik origin to the CSP `form-action` directive.
+Without the configuration the button stays hidden and the page keeps its previous hint.
+
+Authentik and panel setup:
+
+- Create the customer group (default `hts-customers`) without superuser rights or extra roles.
+- Create a service account and token for this site. Grant its role only what this flow uses:
+  view and add users, view groups, add users to the customer group and reset user passwords
+  (recovery links). Store the token privately as `Authentik__ApiToken`.
+- Set a recovery flow on the brand serving the Authentik hostname. Recovery links fail with
+  "No recovery flow set" otherwise, and the panel's "Forgot password?" relies on it as well.
+  Configure Authentik email for those later resets.
+- Allow the customer group to use the panel's Authentik application, and bind policies so
+  customers cannot open other applications. Optionally make the panel the brand's default
+  application so `external` users land there after choosing a password.
+- Set `AUTHENTIK_CUSTOMER_GROUP` to the same group name in the panel's private environment. The
+  panel then admits SSO identities from that group only to accounts carrying the website's
+  customer external IDs, never to directory-owned, root-administrator or other accounts.
+- Use the public Authentik hostname as `Authentik__BaseUrl`, because recovery links are built from
+  it. If Cloudflare blocks the server-to-server calls, resolve that hostname to the local reverse
+  proxy, as the panel's Compose file does with `extra_hosts`.
 
 ## Minecraft profile allowlist
 
@@ -196,9 +252,12 @@ references can otherwise recover stale obligations or paid upgrades incorrectly.
 - [SMTP](../src/HowToSoftware.Hosting/Services/Trials/SmtpTrialEmailSender.cs),
   [native endpoints](../src/HowToSoftware.Hosting/Endpoints/TrialEndpoints.cs) and
   [trial page](../src/HowToSoftware.Hosting/Components/Pages/Trial.razor).
+- [Panel password setup](../src/HowToSoftware.Hosting/Services/Identity/PanelPasswordSetup.cs) and
+  [Authentik client](../src/HowToSoftware.Hosting/Services/Identity/AuthentikClient.cs).
 - [Explicit commerce migration](../src/HowToSoftware.Hosting/Data/CommerceMigrations/20261005170245_AddServerTrials.cs).
 - [Email checks](../tests/HowToSoftware.Hosting.Tests/TrialEmailTests.cs),
-  [HTTP/CSRF/owner cookie checks](../tests/HowToSoftware.Hosting.Tests/TrialEndpointTests.cs).
+  [HTTP/CSRF/owner cookie checks](../tests/HowToSoftware.Hosting.Tests/TrialEndpointTests.cs),
+  [panel password checks](../tests/HowToSoftware.Hosting.Tests/PanelPasswordSetupTests.cs).
 
 Automated checks use fake transports/panel seams and isolated stores. They do not constitute
 production SMTP delivery, installed-egg compatibility, player connectivity or restored-backup

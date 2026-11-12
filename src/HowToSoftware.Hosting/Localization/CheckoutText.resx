@@ -803,6 +803,37 @@ Questions: {1}</value>
   <data name="Trial.Account.PanelSetup" xml:space="preserve">
     <value>For a new panel account, use the panel's setup email to choose your password. Existing accounts keep their usual login.</value>
   </data>
+  <data name="Trial.Account.SetPassword" xml:space="preserve">
+    <value>Set panel password</value>
+  </data>
+  <data name="Trial.Account.PanelSignIn" xml:space="preserve">
+    <value>On the panel, choose “Sign in with HowTo.Software SSO” and use this email. First time there, or forgot your password? Choose “Set panel password” here.</value>
+  </data>
+  <data name="Trial.Notice.PanelDirectory" xml:space="preserve">
+    <value>This email already has an HTS staff sign-in. Use your usual password with “Sign in with HowTo.Software SSO”.</value>
+  </data>
+  <data name="Trial.Notice.PanelPasswordUnavailable" xml:space="preserve">
+    <value>We could not open the password setup right now. Try again in a few minutes or contact HTS.</value>
+  </data>
+  <data name="Trial.Mail.ReadyBodySso" xml:space="preserve">
+    <value>Your trial server is ready. Your {4}-hour trial has started.
+
+Open the panel:
+{0}
+
+Sign in with “Sign in with HowTo.Software SSO” using this email. First time? Choose “Set panel password” on your trial page to create the password. On another device, recover access on that page with this email first:
+{2}
+
+Trial ends: {1}
+
+Manage your trial or choose a plan:
+{2}
+
+After expiry, your server is suspended and its data is retained for {5:0.##} days. Upgrading during that period keeps the same server and save. If you do not upgrade, the trial server and its data are deleted.
+
+HTS Hosting
+Questions: {3}</value>
+  </data>
   <data name="Review.TrialUpgrade" xml:space="preserve">
     <value>This plan continues on your trial server and keeps your save.</value>
   </data>

@@ -803,6 +803,37 @@ Dúvidas: {1}</value>
   <data name="Trial.Account.PanelSetup" xml:space="preserve">
     <value>Se a conta do painel é nova, use o email de configuração do painel para escolher sua senha. Contas existentes mantêm o acesso habitual.</value>
   </data>
+  <data name="Trial.Account.SetPassword" xml:space="preserve">
+    <value>Definir senha do painel</value>
+  </data>
+  <data name="Trial.Account.PanelSignIn" xml:space="preserve">
+    <value>No painel, escolha “Entrar com HowTo.Software SSO” e use este email. Primeiro acesso ou esqueceu a senha? Escolha “Definir senha do painel” aqui.</value>
+  </data>
+  <data name="Trial.Notice.PanelDirectory" xml:space="preserve">
+    <value>Este email já tem um acesso de equipe da HTS. Use sua senha habitual em “Entrar com HowTo.Software SSO”.</value>
+  </data>
+  <data name="Trial.Notice.PanelPasswordUnavailable" xml:space="preserve">
+    <value>Não foi possível abrir a definição de senha agora. Tente novamente em alguns minutos ou fale com a HTS.</value>
+  </data>
+  <data name="Trial.Mail.ReadyBodySso" xml:space="preserve">
+    <value>Seu servidor de teste está pronto. O período de {4} horas começou.
+
+Abra o painel:
+{0}
+
+Entre com “Entrar com HowTo.Software SSO” usando este email. Primeiro acesso? Escolha “Definir senha do painel” na página do seu teste para criar a senha. Em outro dispositivo, recupere antes o acesso nessa página com este email:
+{2}
+
+Fim do teste: {1}
+
+Consulte seu teste ou escolha um plano:
+{2}
+
+Após o fim do teste, seu servidor é suspenso e os dados ficam guardados por {5:0.##} dias. A contratação de um plano nesse período mantém o mesmo servidor e save. Se não contratar, o servidor e seus dados serão excluídos.
+
+HTS Hosting
+Dúvidas: {3}</value>
+  </data>
   <data name="Review.TrialUpgrade" xml:space="preserve">
     <value>Este plano continua no seu servidor de teste e mantém seu save.</value>
   </data>

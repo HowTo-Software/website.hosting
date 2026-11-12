@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.RateLimiting;
 using HowToSoftware.Hosting.Models;
+using HowToSoftware.Hosting.Services.Identity;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -140,15 +141,18 @@ public sealed class SecurityHeadersMiddleware
     private readonly RequestDelegate _next;
     private readonly IWebHostEnvironment _environment;
     private readonly SiteOptions _site;
+    private readonly string? _identityOrigin;
 
     public SecurityHeadersMiddleware(
         RequestDelegate next,
         IWebHostEnvironment environment,
-        IOptions<SiteOptions> site)
+        IOptions<SiteOptions> site,
+        IOptions<AuthentikOptions> identity)
     {
         _next = next;
         _environment = environment;
         _site = site.Value;
+        _identityOrigin = identity.Value.IsConfigured ? identity.Value.Origin?.GetLeftPart(UriPartial.Authority) : null;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -227,8 +231,17 @@ public sealed class SecurityHeadersMiddleware
         // trusted X-Forwarded-Proto because UseForwardedHeaders runs before this middleware.
         var upgrade = context.Request.IsHttps ? " upgrade-insecure-requests;" : string.Empty;
 
+        // Browsers also apply form-action to the redirect after a POST. The panel password forms
+        // post here and are redirected to Authentik, so only those pages may continue there.
+        var formAction = "'self'";
+        if (_identityOrigin is not null
+            && (context.Request.Path.StartsWithSegments("/trial") || context.Request.Path.StartsWithSegments("/account")))
+        {
+            formAction += " " + _identityOrigin;
+        }
+
         return "default-src 'self'; "
-            + "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; "
+            + $"base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action {formAction}; "
             + $"script-src 'self' 'nonce-{nonce}'; "
             // Razor components use a small number of CSS custom properties in style attributes.
             // Stylesheets remain same-origin; unsafe-eval and remote CSS are never allowed.

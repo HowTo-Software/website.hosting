@@ -65,7 +65,17 @@ public sealed class TrialService(
             var stored = existing is null ? await store.AddPendingAsync(record, ct) : await store.RefreshVerificationAsync(record, now, ct);
             if (!stored) return new(TrialRequestOutcome.Sent);
             var url = site.Value.BaseUrl.TrimEnd('/') + "/trial?verify=" + Uri.EscapeDataString(token);
-            await email.SendVerificationAsync(record.NormalizedEmail, record.DisplayName, url, record.Locale, ct);
+            try
+            {
+                await email.SendVerificationAsync(record.NormalizedEmail, record.DisplayName, url, record.Locale, ct);
+            }
+            catch
+            {
+                // An undelivered link must not start the resend cooldown above, or the retry would
+                // report "sent" without sending anything.
+                await ForgetUndeliveredVerificationAsync(record.Id, record.VerificationTokenHash);
+                throw;
+            }
             return new(TrialRequestOutcome.Sent);
         }
         catch (Exception error) when (error is not OperationCanceledException)
@@ -106,7 +116,9 @@ public sealed class TrialService(
         try
         {
             var existing = await store.FindByEmailAsync(normalized, ct);
-            if (existing?.VerifiedAt is null) return new(TrialRequestOutcome.Sent);
+            // An unknown address gets the same answer and never gains an entitlement. A request that
+            // was never confirmed gets its confirmation again, so a lost first email is recoverable.
+            if (existing is null) return new(TrialRequestOutcome.Sent);
             return await RequestAsync(new(existing.NormalizedEmail, existing.DisplayName, existing.GameSlug,
                 existing.ProfileId, existing.Version, locale), ct);
         }
@@ -346,6 +358,12 @@ public sealed class TrialService(
     }
 
     private TimeSpan LeaseDuration => TimeSpan.FromMinutes(settings.CurrentValue.LeaseMinutes);
+    private async Task ForgetUndeliveredVerificationAsync(Guid id, string? hash)
+    {
+        if (hash is null) return;
+        try { await store.ClearVerificationAsync(id, hash, CancellationToken.None); }
+        catch (Exception error) when (error is not OperationCanceledException) { LogFailure("Trial verification cleanup", error); }
+    }
     private async Task RenewAsync(ServerTrialRecord record, CancellationToken ct)
     {
         var now = clock.GetUtcNow();

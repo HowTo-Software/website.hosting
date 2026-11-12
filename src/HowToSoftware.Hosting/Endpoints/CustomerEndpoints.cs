@@ -1,5 +1,6 @@
 using System.Globalization;
 using HowToSoftware.Hosting.Infrastructure.Security;
+using HowToSoftware.Hosting.Services.Identity;
 using HowToSoftware.Hosting.Services.Subscriptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,7 @@ public static class CustomerEndpoints
         endpoints.MapPost("/account/plans/preview", PreviewAsync).RequireRateLimiting(SecurityRateLimitPolicies.CustomerAction);
         endpoints.MapPost("/account/plans/confirm", ChangeAsync).RequireRateLimiting(SecurityRateLimitPolicies.CustomerAction);
         endpoints.MapPost("/account/plans/cancel", CancelAsync).RequireRateLimiting(SecurityRateLimitPolicies.CustomerAction);
+        endpoints.MapPost("/account/panel-password", PanelPasswordAsync).RequireRateLimiting(SecurityRateLimitPolicies.CustomerAction);
         return endpoints;
     }
     private static async Task<IResult> GuardAsync(HttpContext context, Func<Task<IResult>> action)
@@ -94,6 +96,21 @@ public static class CustomerEndpoints
             var ok = await management.CancelScheduledAsync(owner, input.ChangeId, context.RequestAborted);
             return Results.LocalRedirect("/account?tab=plans&notice=" + (ok ? "success" : "failed"));
         });
+    // The verified session email is the only identity used; the browser cannot name another account.
+    private static Task<IResult> PanelPasswordAsync([FromForm] CustomerPanelPasswordForm input, HttpContext context,
+        ICustomerAccess access, IPanelPasswordSetup passwords) =>
+        GuardAsync(context, async () =>
+        {
+            var owner = await access.OwnerAsync(CustomerSessionCookie.Read(context), context.RequestAborted);
+            if (owner is null) return Results.LocalRedirect("/account?notice=invalid");
+            var result = await passwords.CreateLinkAsync(owner, owner.Split('@')[0], context.RequestAborted);
+            return result switch
+            {
+                { Outcome: PanelPasswordSetupOutcome.Ready, Link: { } link } => Results.Redirect(link.AbsoluteUri),
+                { Outcome: PanelPasswordSetupOutcome.DirectoryAccount } => Results.LocalRedirect("/account?tab=account&notice=panel-directory"),
+                _ => Results.LocalRedirect("/account?tab=account&notice=panel-password-unavailable")
+            };
+        });
     private static string SafeCode(string code) => code == "invalid" ? "selection" : code is "disabled" or "pending" or "interval" or "unpaid" or "capacity" or "expired" or "stale" or "renewing" or "payment-method" ? code : "failed";
 }
 public sealed class CustomerAccessForm { public string? Email { get; set; } }
@@ -101,3 +118,4 @@ public sealed class CustomerConfirmationForm { public string? Token { get; set; 
 public sealed class CustomerActionForm { public Guid ChangeId { get; set; } }
 public sealed class CustomerPlanForm { public Guid ServiceId { get; set; } public Guid PlanId { get; set; } }
 public sealed class CustomerSupportForm { public string? Subject { get; set; } public string? Message { get; set; } }
+public sealed class CustomerPanelPasswordForm;
