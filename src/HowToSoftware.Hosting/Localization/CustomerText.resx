@@ -82,6 +82,10 @@
   <data name="Portal.NoTickets" xml:space="preserve"><value>You have no support requests yet.</value></data>
   <data name="Portal.VerifiedEmail" xml:space="preserve"><value>Verified email</value></data>
   <data name="Portal.SecurityBody" xml:space="preserve"><value>Your session is limited and tied to this verified email. Only the services and invoices linked to it are shown.</value></data>
+  <data name="Portal.SetPanelPassword" xml:space="preserve"><value>Set panel password</value></data>
+  <data name="Portal.PanelSignIn" xml:space="preserve"><value>The game panel signs you in with “Sign in with HowTo.Software SSO” and this email. Set or reset that password here.</value></data>
+  <data name="Portal.PanelDirectory" xml:space="preserve"><value>This email already has an HTS staff sign-in. Use your usual password with “Sign in with HowTo.Software SSO”.</value></data>
+  <data name="Portal.PanelPasswordUnavailable" xml:space="preserve"><value>We could not open the password setup right now. Try again in a few minutes or contact support.</value></data>
   <data name="Portal.SmtpSubject" xml:space="preserve"><value>Your secure HTS account access</value></data>
   <data name="Portal.SmtpBody" xml:space="preserve"><value>Use this single-use link to access your HTS account. It expires in 15 minutes.
 

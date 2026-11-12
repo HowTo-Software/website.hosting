@@ -166,7 +166,9 @@ public class ShippedConfigurationTests : IDisposable
             "PTERODACTYL_DEPLOY_TESTS_ENABLED",
             "APP_BASE_URL",
             "APP_ENVIRONMENT",
-            "ConnectionStrings__Hosting"
+            "ConnectionStrings__Hosting",
+            "Authentik__BaseUrl",
+            "Authentik__ApiToken"
         };
 
         Assert.All(requiredNames, name => Assert.Contains(name, raw, StringComparison.Ordinal));

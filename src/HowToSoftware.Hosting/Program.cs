@@ -197,6 +197,8 @@ builder.Services.AddSingleton<StripeGateway>();
 builder.Services.AddSingleton<IStripeGateway>(p => p.GetRequiredService<StripeGateway>());
 builder.Services.AddCustomerArea(builder.Configuration, database.IsDatabaseConfigured);
 builder.Services.AddExternalIdentities(builder.Configuration, database.IsDatabaseConfigured);
+// Customers choose their panel SSO password in Authentik; off until Authentik__BaseUrl/ApiToken are set.
+builder.Services.AddPanelPasswordSetup(builder.Configuration);
 builder.Services.AddSingleton<OrderFulfillmentQueue>();
 builder.Services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
 builder.Services.AddScoped<IStripeWebhookHandler, StripeWebhookHandler>();

@@ -1,4 +1,5 @@
 using System.Globalization;
+using HowToSoftware.Hosting.Services.Identity;
 using HowToSoftware.Hosting.Services.Trials;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ public static class TrialEndpoints
         endpoints.MapPost("/trials/request", RequestAsync).RequireRateLimiting(TrialEndpointPolicies.Request);
         endpoints.MapPost("/trials/recover", RecoverAsync).RequireRateLimiting(TrialEndpointPolicies.Request);
         endpoints.MapPost("/trials/confirm", ConfirmAsync).RequireRateLimiting(TrialEndpointPolicies.Confirm);
+        endpoints.MapPost("/trials/panel-password", PanelPasswordAsync).RequireRateLimiting(TrialEndpointPolicies.Confirm);
         return endpoints;
     }
 
@@ -121,6 +123,44 @@ public static class TrialEndpoints
             return Results.LocalRedirect("/trial?notice=unavailable");
         }
     }
+
+    /// <summary>
+    /// Hands the verified trial owner to a one-time Authentik page to choose the panel's SSO password.
+    /// The owner cookie is the proof of email ownership; the form carries nothing else.
+    /// </summary>
+    private static async Task<IResult> PanelPasswordAsync([FromForm] TrialPanelPasswordForm input, HttpContext context,
+        ITrialService trials, IPanelPasswordSetup passwords, ILoggerFactory loggerFactory)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        const string unavailable = "/trial?notice=panel-password-unavailable";
+        if (!passwords.IsConfigured || TrialAccessCookie.Read(context) is not { } accessToken)
+        {
+            return Results.LocalRedirect(unavailable);
+        }
+
+        try
+        {
+            var account = await trials.GetByAccessTokenAsync(accessToken, context.RequestAborted);
+            if (account is null || !TrialPanelAccess.CanSetPassword(account.State))
+            {
+                return Results.LocalRedirect(unavailable);
+            }
+
+            var result = await passwords.CreateLinkAsync(account.Email, account.DisplayName, context.RequestAborted);
+            return result switch
+            {
+                { Outcome: PanelPasswordSetupOutcome.Ready, Link: { } link } => Results.Redirect(link.AbsoluteUri),
+                { Outcome: PanelPasswordSetupOutcome.DirectoryAccount } => Results.LocalRedirect("/trial?notice=panel-directory"),
+                _ => Results.LocalRedirect(unavailable)
+            };
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException || !context.RequestAborted.IsCancellationRequested)
+        {
+            loggerFactory.CreateLogger("TrialEndpoints").LogWarning(
+                "Trial panel password setup could not complete ({FailureClass}).", exception.GetType().Name);
+            return Results.LocalRedirect(unavailable);
+        }
+    }
 }
 
 public sealed class TrialRequestForm
@@ -141,3 +181,6 @@ public sealed class TrialRecoveryForm
 {
     public string? Email { get; set; }
 }
+
+/// <summary>Binding a form enables automatic antiforgery validation; ownership comes from the cookie.</summary>
+public sealed class TrialPanelPasswordForm;

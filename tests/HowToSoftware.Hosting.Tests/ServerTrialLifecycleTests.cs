@@ -111,6 +111,35 @@ public sealed class ServerTrialLifecycleTests
     }
 
     [Fact]
+    public async Task RecoveryResendsTheConfirmationOfARequestThatWasNeverConfirmed()
+    {
+        var f = new Fixture();
+        await f.Service.RequestAsync(new("player@example.com", "Player"));
+        var lostLink = f.Mail.LastVerificationUrl;
+        f.Clock.Advance(TimeSpan.FromMinutes(3));
+        Assert.Equal(TrialRequestOutcome.Sent, (await f.Service.RecoverAccessAsync("player@example.com", "pt-BR")).Outcome);
+        Assert.NotEqual(lostLink, f.Mail.LastVerificationUrl);
+        Assert.Equal("pt-BR", f.Mail.LastLocale);
+        await f.ConfirmAsync();
+        Assert.Equal(TrialState.Provisioning, f.Store.Single.State);
+        Assert.Single(f.Store.Rows);
+    }
+
+    [Fact]
+    public async Task AnUndeliveredConfirmationIsNotHiddenBehindTheResendCooldown()
+    {
+        var f = new Fixture();
+        f.Mail.FailVerification = true;
+        Assert.Equal(TrialRequestOutcome.Unavailable, (await f.Service.RequestAsync(new("player@example.com", "Player"))).Outcome);
+        Assert.Null(f.Store.Single.VerificationTokenHash);
+        f.Mail.FailVerification = false;
+        // An immediate retry must really send, instead of reporting a message that never left.
+        Assert.Equal(TrialRequestOutcome.Sent, (await f.Service.RequestAsync(new("player@example.com", "Player"))).Outcome);
+        Assert.NotNull(f.Mail.LastVerificationUrl);
+        await f.ConfirmAsync();
+    }
+
+    [Fact]
     public async Task ExpiredVerificationAndReplayCannotProvision()
     {
         var f = new Fixture();
@@ -434,8 +463,12 @@ public sealed class ServerTrialLifecycleTests
         public int ExpiredCalls { get; private set; }
         public int DeletedCalls { get; private set; }
         public bool FailReady { get; set; }
+        public bool FailVerification { get; set; }
         public Task SendVerificationAsync(string email, string name, string url, string locale, CancellationToken ct)
-        { LastVerificationUrl = url; LastLocale = locale; return Task.CompletedTask; }
+        {
+            if (FailVerification) throw new IOException("Relay rejected the message");
+            LastVerificationUrl = url; LastLocale = locale; return Task.CompletedTask;
+        }
         public Task SendReadyAsync(string email, string panelUrl, DateTimeOffset expiresAt, string locale, CancellationToken ct)
         { ReadyCalls++; if (FailReady) throw new IOException("Delivery unavailable"); return Task.CompletedTask; }
         public Task SendExpiredAsync(string email, DateTimeOffset deleteAfter, string locale, CancellationToken ct)
@@ -538,6 +571,12 @@ public sealed class ServerTrialLifecycleTests
             row.VerificationTokenHash = x.VerificationTokenHash; row.VerificationExpiresAt = x.VerificationExpiresAt;
             row.Locale = x.Locale; row.GameSlug = x.GameSlug; row.ProfileId = x.ProfileId; row.Version = x.Version;
             row.UpdatedAt = now; return Task.FromResult(true);
+        }
+        public Task ClearVerificationAsync(Guid id, string hash, CancellationToken ct)
+        {
+            var row = Rows[id];
+            if (row.VerificationTokenHash == hash) { row.VerificationTokenHash = null; row.VerificationExpiresAt = null; }
+            return Task.CompletedTask;
         }
         public Task<bool> ConfirmAsync(Guid id, string hash, string access, DateTimeOffset now, CancellationToken ct)
         {

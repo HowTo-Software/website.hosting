@@ -1,7 +1,9 @@
 @page "/trial"
 @using System.Globalization
+@using HowToSoftware.Hosting.Services.Identity
 @using HowToSoftware.Hosting.Services.Trials
 @inject ITrialService Trials
+@inject IPanelPasswordSetup PanelPassword
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOptions<TrialOptions> TrialSettings
 @inject IOptions<PterodactylOptions> Panel
@@ -100,6 +102,10 @@
                         </dl>
                     }
                     <div class="trial-page__actions">
+                        @if (PanelNoticeKey is { } panelNotice)
+                        {
+                            <p class="trial-page__notice" role="status">@Text[panelNotice]</p>
+                        }
                         @if (account.UpgradeOrderId is not null && account.State is TrialState.Active or TrialState.Expired)
                         {
                             <p class="trial-page__notice">@Text["Review.TrialUpgradePending"]</p>
@@ -107,6 +113,17 @@
                         @if (account.State is TrialState.Active or TrialState.Converted)
                         {
                             <CtaButton Href="@PanelLoginUrl" Variant="CtaVariant.Primary" TrailingIcon="IconName.ArrowRight">@Text["Trial.Account.OpenPanel"]</CtaButton>
+                        }
+                        @if (PanelPassword.IsConfigured && TrialPanelAccess.CanSetPassword(account.State))
+                        {
+                            <form method="post" action="/trials/panel-password" data-enhance="false">
+                                <AntiforgeryToken />
+                                <CtaButton ButtonType="submit" Variant="CtaVariant.Secondary" TrailingIcon="IconName.ArrowRight">@Text["Trial.Account.SetPassword"]</CtaButton>
+                            </form>
+                            <p class="trial-page__hint">@Text["Trial.Account.PanelSignIn"]</p>
+                        }
+                        else if (account.State is TrialState.Active or TrialState.Converted)
+                        {
                             <p class="trial-page__hint">@Text["Trial.Account.PanelSetup"]</p>
                         }
                         @if (account.CanUpgrade)
@@ -236,7 +253,14 @@
     {
         "sent" => "Trial.Notice.Sent", "invalid" => "Trial.Notice.Invalid",
         "unavailable" => "Trial.Unavailable", "invalid-token" => "Trial.Notice.InvalidToken",
-        "claimed" => "Trial.Notice.Claimed", _ => null
+        "claimed" => "Trial.Notice.Claimed", _ => PanelNoticeKey
+    };
+
+    private string? PanelNoticeKey => Notice switch
+    {
+        "panel-directory" => "Trial.Notice.PanelDirectory",
+        "panel-password-unavailable" => "Trial.Notice.PanelPasswordUnavailable",
+        _ => null
     };
 
     protected override async Task OnParametersSetAsync()

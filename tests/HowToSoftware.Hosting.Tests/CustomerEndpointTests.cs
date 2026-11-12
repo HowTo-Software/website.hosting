@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using HowToSoftware.Hosting.Endpoints;
+using HowToSoftware.Hosting.Services.Identity;
 using HowToSoftware.Hosting.Services.Subscriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,6 +14,7 @@ public sealed class CustomerEndpointTests : IDisposable
 {
     private readonly AccessFake _access = new();
     private readonly WorkspaceFake _workspace = new();
+    private readonly PasswordsFake _passwords = new();
     private WebApplicationFactory<Program> Factory(string environment = "Development")
     {
         var factory = new WebApplicationFactory<Program>();
@@ -35,6 +37,7 @@ public sealed class CustomerEndpointTests : IDisposable
             {
                 s.RemoveAll<ICustomerAccess>(); s.AddSingleton<ICustomerAccess>(_access);
                 s.RemoveAll<ICustomerWorkspace>(); s.AddSingleton<ICustomerWorkspace>(_workspace);
+                s.RemoveAll<IPanelPasswordSetup>(); s.AddSingleton<IPanelPasswordSetup>(_passwords);
             });
         });
     }
@@ -114,6 +117,25 @@ public sealed class CustomerEndpointTests : IDisposable
         Assert.Equal(0, _workspace.Loads);
     }
     [Fact]
+    public async Task OnlyTheVerifiedSessionEmailCanOpenPanelPasswordSetup()
+    {
+        using var client = Client();
+        using var anonymousContent = new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = await Csrf(client) });
+        using var anonymous = await client.PostAsync("/account/panel-password", anonymousContent);
+        Assert.Equal("/account?notice=invalid", anonymous.Headers.Location!.ToString());
+        Assert.Empty(_passwords.Requests);
+
+        using var confirmContent = new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["Token"] = AccessFake.Challenge, ["__RequestVerificationToken"] = await Csrf(client, "/account?verify=" + AccessFake.Challenge) });
+        using var confirmed = await client.PostAsync("/account/access/confirm", confirmContent);
+        Assert.Contains("action=\"/account/panel-password\"", await client.GetStringAsync("/account?tab=account"));
+        using var setupContent = new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = await Csrf(client, "/account?tab=account") });
+        using var setup = await client.PostAsync("/account/panel-password", setupContent);
+        Assert.Equal(HttpStatusCode.Redirect, setup.StatusCode);
+        Assert.Equal(PasswordsFake.Link, setup.Headers.Location);
+        Assert.Equal("owner@example.test", Assert.Single(_passwords.Requests));
+    }
+    [Fact]
     public async Task RequestEndpointHasDedicatedRateLimit()
     {
         using var client = Client();
@@ -178,6 +200,14 @@ public sealed class CustomerEndpointTests : IDisposable
         public Task<string?> ConfirmAsync(string token, CancellationToken ct) { Confirmations++; return Task.FromResult<string?>(token == Challenge ? Session : null); }
         public Task<string?> OwnerAsync(string? session, CancellationToken ct) => Task.FromResult<string?>(session == Session && Revocations == 0 ? "owner@example.test" : null);
         public Task RevokeAsync(string? session, CancellationToken ct) { Revocations++; return Task.CompletedTask; }
+    }
+    private sealed class PasswordsFake : IPanelPasswordSetup
+    {
+        public static readonly Uri Link = new("https://auth.example.test/if/flow/default-recovery-flow/?flow_token=unit-link");
+        public bool IsConfigured => true;
+        public List<string> Requests { get; } = [];
+        public Task<PanelPasswordSetupResult> CreateLinkAsync(string verifiedEmail, string displayName, CancellationToken ct)
+        { Requests.Add(verifiedEmail); return Task.FromResult(new PanelPasswordSetupResult(PanelPasswordSetupOutcome.Ready, Link)); }
     }
     private sealed class WorkspaceFake : ICustomerWorkspace
     {

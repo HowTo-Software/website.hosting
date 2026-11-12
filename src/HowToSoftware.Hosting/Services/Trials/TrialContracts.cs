@@ -22,6 +22,13 @@ public sealed record TrialProvisioningRequest(Guid TrialId, string ExternalId, i
     string GameSlug = "project-zomboid", string? ProfileId = null, string? Version = null, TrialGameProfile? Profile = null,
     string? DisplayName = null);
 
+/// <summary>States in which a verified owner has, or is about to have, a panel account to sign in to.</summary>
+public static class TrialPanelAccess
+{
+    public static bool CanSetPassword(TrialState state) => state is TrialState.Provisioning or TrialState.Installing
+        or TrialState.Active or TrialState.Expired or TrialState.Converted;
+}
+
 public interface ITrialService
 {
     bool IsAvailable { get; }

@@ -21,6 +21,11 @@ Invoice history and upcoming estimates come from Stripe, including credits, taxe
 Invoice/payment/PDF links must use exact HTTPS Stripe hosts; arbitrary provider URLs are rejected.
 Upcoming invoices are estimates, not guaranteed final amounts.
 
+When Authentik is configured, the account tab offers **Set panel password** for the verified
+session email. It creates or reuses that customer's Authentik account and redirects to a one-time
+page for choosing the password used by the panel's single sign-on. Staff and directory accounts
+are never changed. See [panel sign-in](TRIAL-SERVERS.md#panel-sign-in).
+
 Support requests are stored durably and delivered to `Site:ContactEmail` by the worker. A relay
 failure does not discard a saved request. Delivery is at least once: after a crash, a notification
 can repeat with the same support reference. Staff reply by email. This does not implement an

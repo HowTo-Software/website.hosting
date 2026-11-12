@@ -90,4 +90,16 @@ The two root Compose files are older local alternatives with different services/
 
 ## Trials, SMTP and announcements
 
-`Trials` configures the shared 24-hour/72-hour policy, resource limits and approved Minecraft profiles. `Smtp` carries HTS mail delivery configuration; the panel needs its own SMTP for password setup. `MinecraftPlans:Tiers` contains agreed paid conversion tiers and defaults empty. `PublicPromotions:Campaigns` permits at most three existing database codes to be advertised; it neither creates coupons nor sets discounts. Use the native `Section__Key` environment names in `.env.example`. New trial requests default off. See [trial configuration](../TRIAL-SERVERS.md).
+`Trials` configures the shared 24-hour/72-hour policy, resource limits and approved Minecraft profiles. `Smtp` carries HTS mail delivery configuration; panel passwords are set in Authentik, as described under panel sign-in below. `MinecraftPlans:Tiers` contains agreed paid conversion tiers and defaults empty. `PublicPromotions:Campaigns` permits at most three existing database codes to be advertised; it neither creates coupons nor sets discounts. Use the native `Section__Key` environment names in `.env.example`. New trial requests default off. See [trial configuration](../TRIAL-SERVERS.md).
+
+## Panel sign-in (Authentik)
+
+| Variable | Purpose |
+| --- | --- |
+| Authentik__BaseUrl | Public HTTPS origin of Authentik, without a path; one-time password links point here |
+| Authentik__ApiToken | Service-account token; backend only |
+| Authentik__CustomerGroup | Existing customer group, default `hts-customers`; must equal the panel's `AUTHENTIK_CUSTOMER_GROUP` |
+| Authentik__CustomerPath | Directory path for customers created by the site, default `customers/hts` |
+| Authentik__TimeoutSeconds | API timeout, 2–60 seconds, default 15 |
+
+Configure both the URL and the token, or neither; startup validation rejects anything else. Without them the **Set panel password** button stays hidden. Setup steps and safeguards: [panel sign-in](../TRIAL-SERVERS.md#panel-sign-in).

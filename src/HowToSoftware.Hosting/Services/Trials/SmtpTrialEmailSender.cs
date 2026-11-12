@@ -4,6 +4,7 @@ using System.Net.Mail;
 using System.Text;
 using HowToSoftware.Hosting.Localization;
 using HowToSoftware.Hosting.Models;
+using HowToSoftware.Hosting.Services.Identity;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
@@ -23,7 +24,8 @@ public sealed class SmtpTrialEmailSender(
     IOptions<SiteOptions> site,
     IStringLocalizer<CheckoutText> text,
     ITrialMailTransport transport,
-    IOptions<TrialOptions>? trials = null) : ITrialEmailSender
+    IOptions<TrialOptions>? trials = null,
+    IOptions<AuthentikOptions>? panelSignIn = null) : ITrialEmailSender
 {
     public bool IsConfigured => options.Value.IsConfigured;
 
@@ -32,9 +34,11 @@ public sealed class SmtpTrialEmailSender(
         SendAsync(email, locale, "Trial.Mail.VerifySubject", "Trial.Mail.VerifyBody", cancellationToken,
             displayName, verificationUrl, site.Value.ContactEmail, Settings.DurationHours);
 
+    // With SSO the panel has no password of its own, so the message explains where to choose it.
     public Task SendReadyAsync(string email, string panelUrl, DateTimeOffset expiresAt,
         string locale, CancellationToken cancellationToken) =>
-        SendAsync(email, locale, "Trial.Mail.ReadySubject", "Trial.Mail.ReadyBody", cancellationToken,
+        SendAsync(email, locale, "Trial.Mail.ReadySubject",
+            panelSignIn?.Value.IsConfigured == true ? "Trial.Mail.ReadyBodySso" : "Trial.Mail.ReadyBody", cancellationToken,
             panelUrl, FormatUtc(expiresAt), TrialPageUrl, site.Value.ContactEmail,
             Settings.DurationHours, Settings.RetentionHours / 24m);
 
