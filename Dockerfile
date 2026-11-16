@@ -18,7 +18,7 @@ RUN dotnet publish src/HowToSoftware.Hosting/HowToSoftware.Hosting.csproj \
     -o /app/publish
 
 # ---- runtime --------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS final
 WORKDIR /app
 
 ENV ASPNETCORE_HTTP_PORTS=8080 \
